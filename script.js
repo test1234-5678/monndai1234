@@ -382,3 +382,19 @@ function updateProgressRate(){
 // 初期化
 setMode("normal");
 setCount(5);
+
+
+function goHome(){
+
+  showPage("topPage");
+
+  // クイズ状態リセット
+  quizQuestions = [];
+  currentQuestion = 0;
+  correctCount = 0;
+  answered = false;
+
+  // 進捗保存はそのまま維持（必要なら削除しない）
+  // localStorage.removeItem("quiz_progress_index");
+
+}
