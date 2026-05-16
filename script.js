@@ -7,7 +7,12 @@ let selectedMode = "normal";
 let selectedCount = 5;
 let answered = false;
 
-const PROGRESS_KEY = "quiz_progress_index";
+// ======================
+// コンボ・スコア
+// ======================
+let comboCount = 0;
+
+const HIGH_SCORE_KEY = "quiz_high_score";
 
 // ======================
 // データ読み込み
@@ -20,6 +25,7 @@ fetch("questions.json")
 
   createQuestionList();
   updateProgressRate();
+  loadHighScore();
 
 });
 
@@ -76,23 +82,26 @@ function updateSettings(){
 function startQuiz(){
 
   correctCount = 0;
+  comboCount = 0;
+  answered = false;
 
   let temp = [...questions];
 
   if(selectedMode === "normal"){
 
-    let saved = localStorage.getItem(PROGRESS_KEY);
+    let saved = localStorage.getItem("quiz_progress_index");
     let startIndex = saved ? parseInt(saved) : 0;
 
     temp = questions.slice(startIndex);
-  }
 
-  else if(selectedMode === "random"){
+  }else if(selectedMode === "random"){
+
     temp.sort(()=>Math.random()-0.5);
-  }
 
-  else if(selectedMode === "weak"){
+  }else if(selectedMode === "weak"){
+
     temp.sort((a,b)=>getRate(a.id)-getRate(b.id));
+
   }
 
   quizQuestions = temp.slice(0, selectedCount);
@@ -136,10 +145,11 @@ function showQuestion(){
 
   choices.forEach(choice=>{
 
-    const button = document.createElement("button");
-    button.innerText = choice;
-    button.onclick = ()=>checkAnswer(choice);
-    choicesDiv.appendChild(button);
+    const btn = document.createElement("button");
+    btn.innerText = choice;
+    btn.onclick = ()=>checkAnswer(choice);
+
+    choicesDiv.appendChild(btn);
 
   });
 
@@ -159,28 +169,30 @@ function checkAnswer(choice){
   const resultEl = document.getElementById("result");
   const quizPage = document.getElementById("quizPage");
 
-  resultEl.className = "";
-  quizPage.classList.remove("correct-flash");
-  quizPage.classList.remove("wrong-shake");
-
   let correct = false;
 
   if(choice === q.answer){
 
     correct = true;
     correctCount++;
+    comboCount++;
 
-    resultEl.classList.add("result-correct");
-    resultEl.innerText = "⭕️ 正解！！";
+    resultEl.innerText =
+    "⭕️ 正解！！\n🔥コンボ：" + comboCount;
 
     quizPage.classList.add("correct-flash");
 
+    triggerComboEffect(comboCount);
+
   }else{
 
-    resultEl.classList.add("result-wrong");
-    resultEl.innerText = "❌ 不正解！！\n正解は " + q.answer;
+    comboCount = 0;
+
+    resultEl.innerText =
+    "❌ 不正解！！\n正解は " + q.answer;
 
     quizPage.classList.add("wrong-shake");
+
   }
 
   saveHistory(q.id, correct);
@@ -189,17 +201,49 @@ function checkAnswer(choice){
   saveProgress();
 
   setTimeout(()=>{
+
     quizPage.classList.remove("correct-flash");
     quizPage.classList.remove("wrong-shake");
+
   },600);
 }
 
 // ======================
-// 次へ（完全安定版）
+// コンボエフェクト
+// ======================
+function triggerComboEffect(combo){
+
+  const page = document.getElementById("quizPage");
+
+  page.classList.remove("combo-5");
+  page.classList.remove("combo-20");
+  page.classList.remove("combo-100");
+
+  if(combo === 5){
+    page.classList.add("combo-5");
+  }
+
+  if(combo === 20){
+    page.classList.add("combo-20");
+  }
+
+  if(combo === 100){
+    page.classList.add("combo-100");
+  }
+
+  setTimeout(()=>{
+
+    page.classList.remove("combo-5");
+    page.classList.remove("combo-20");
+    page.classList.remove("combo-100");
+
+  },1200);
+}
+
+// ======================
+// 次へ
 // ======================
 function nextQuestion(){
-
-  console.log("NEXT");
 
   if(currentQuestion >= quizQuestions.length - 1){
     finishQuiz();
@@ -211,11 +255,9 @@ function nextQuestion(){
 }
 
 // ======================
-// 戻る（完全安定版）
+// 戻る
 // ======================
 function prevQuestion(){
-
-  console.log("PREV");
 
   if(currentQuestion === 0) return;
 
@@ -231,10 +273,9 @@ function goHome(){
   quizQuestions = [];
   currentQuestion = 0;
   correctCount = 0;
-  answered = false;
+  comboCount = 0;
 
   showPage("topPage");
-  window.scrollTo(0,0);
 }
 
 // ======================
@@ -242,14 +283,12 @@ function goHome(){
 // ======================
 function saveProgress(){
 
-  if(selectedMode !== "normal") return;
-
   const q = quizQuestions[currentQuestion];
-  const globalIndex = questions.indexOf(q);
+  if(!q) return;
 
-  if(globalIndex >= 0){
-    localStorage.setItem(PROGRESS_KEY, globalIndex + 1);
-  }
+  const globalIndex = questions.indexOf(q);
+  localStorage.setItem("quiz_progress_index", globalIndex + 1);
+
 }
 
 // ======================
@@ -265,6 +304,15 @@ function finishQuiz(){
   document.getElementById("finalResult").innerText =
   correctCount + " / " + quizQuestions.length +
   " 正解\n正答率 " + rate + "%";
+
+  // ハイスコア保存
+  let saved = localStorage.getItem(HIGH_SCORE_KEY) || 0;
+
+  if(comboCount > saved){
+    localStorage.setItem(HIGH_SCORE_KEY, comboCount);
+  }
+
+  loadHighScore();
 }
 
 // ======================
@@ -278,16 +326,14 @@ function showPage(id){
   document.getElementById("listPage").classList.add("hidden");
 
   document.getElementById(id).classList.remove("hidden");
-
-  window.scrollTo(0,0);
 }
 
 // ======================
-// スワイプ（安全版）
+// スワイプ
 // ======================
 let touchStartX = 0;
 
-document.addEventListener("touchstart", function(e){
+document.addEventListener("touchstart", e=>{
 
   if(e.target.tagName === "BUTTON") return;
 
@@ -295,14 +341,14 @@ document.addEventListener("touchstart", function(e){
 
 });
 
-document.addEventListener("touchend", function(e){
+document.addEventListener("touchend", e=>{
 
   if(e.target.tagName === "BUTTON") return;
 
-  const quizPage = document.getElementById("quizPage");
-  if(!quizPage || quizPage.classList.contains("hidden")) return;
+  const page = document.getElementById("quizPage");
+  if(page.classList.contains("hidden")) return;
 
-  const diff = e.changedTouches[0].screenX - touchStartX;
+  let diff = e.changedTouches[0].screenX - touchStartX;
 
   if(Math.abs(diff) < 60) return;
 
@@ -311,6 +357,7 @@ document.addEventListener("touchend", function(e){
   }else{
     nextQuestion();
   }
+
 });
 
 // ======================
@@ -318,27 +365,23 @@ document.addEventListener("touchend", function(e){
 // ======================
 function saveHistory(id, result){
 
-  let history =
-  JSON.parse(localStorage.getItem(id)) || [];
+  let h = JSON.parse(localStorage.getItem(id)) || [];
 
-  history.push(result);
+  h.push(result);
 
-  if(history.length > 3){
-    history.shift();
-  }
+  if(h.length > 3) h.shift();
 
-  localStorage.setItem(id, JSON.stringify(history));
+  localStorage.setItem(id, JSON.stringify(h));
 }
 
 function showHistory(id){
 
-  let history =
-  JSON.parse(localStorage.getItem(id)) || [];
+  let h = JSON.parse(localStorage.getItem(id)) || [];
 
   let text = "";
 
-  history.forEach(h=>{
-    text += h ? "◯ " : "× ";
+  h.forEach(x=>{
+    text += x ? "◯ " : "× ";
   });
 
   document.getElementById("history").innerText =
@@ -350,12 +393,11 @@ function showHistory(id){
 // ======================
 function getRate(id){
 
-  let history =
-  JSON.parse(localStorage.getItem(id)) || [];
+  let h = JSON.parse(localStorage.getItem(id)) || [];
 
-  if(history.length === 0) return 0;
+  if(h.length === 0) return 0;
 
-  return history.filter(x=>x).length / history.length;
+  return h.filter(x=>x).length / h.length;
 }
 
 // ======================
@@ -368,36 +410,33 @@ function createQuestionList(){
 
   questions.forEach(q=>{
 
-    let history =
-    JSON.parse(localStorage.getItem(q.id)) || [];
+    let h = JSON.parse(localStorage.getItem(q.id)) || [];
 
     let text = "";
+    h.forEach(x=> text += x ? "◯ " : "× ");
 
-    history.forEach(h=>{
-      text += h ? "◯ " : "× ";
-    });
+    const btn = document.createElement("button");
 
-    const button = document.createElement("button");
+    btn.className = "questionItem";
 
-    button.className = "questionItem";
-
-    button.innerHTML =
+    btn.innerHTML =
     `<div class="questionRow">
       <div>問題 ${questions.indexOf(q)+1}</div>
       <div class="questionHistory">${text}</div>
     </div>`;
 
-    button.onclick = ()=>{
+    btn.onclick = ()=>{
 
       quizQuestions = questions;
       currentQuestion = questions.indexOf(q);
-      correctCount = 0;
 
       showPage("quizPage");
       showQuestion();
+
     };
 
-    list.appendChild(button);
+    list.appendChild(btn);
+
   });
 }
 
@@ -410,23 +449,32 @@ function updateProgressRate(){
 
   questions.forEach(q=>{
 
-    let history =
-    JSON.parse(localStorage.getItem(q.id)) || [];
+    let h = JSON.parse(localStorage.getItem(q.id)) || [];
 
-    if(history.length === 3 && history.every(x=>x)){
+    if(h.length === 3 && h.every(x=>x)){
       complete++;
     }
 
   });
 
-  const rate =
-  Math.round(complete / questions.length * 100);
+  let rate = Math.round(complete / questions.length * 100);
 
   document.getElementById("progressRate").innerText =
   "進捗率：" + rate + "%";
 
   document.getElementById("progressFill").style.width =
   rate + "%";
+}
+
+// ======================
+// ハイスコア表示
+// ======================
+function loadHighScore(){
+
+  let s = localStorage.getItem(HIGH_SCORE_KEY) || 0;
+
+  document.getElementById("highScore").innerText =
+  "ハイスコア：" + s;
 }
 
 // 初期化
