@@ -273,3 +273,28 @@ button{
   margin-top:12px;
 
 }
+
+/* 正解フラッシュ */
+.correct-flash{
+  animation: flashGreen 0.5s ease;
+}
+
+@keyframes flashGreen{
+  0% { background:#ffffff; }
+  50% { background:#b6f2c2; }
+  100% { background:#ffffff; }
+}
+
+/* 不正解シェイク */
+.wrong-shake{
+  animation: shakeRed 0.4s ease;
+}
+
+@keyframes shakeRed{
+  0% { transform: translateX(0); background:#ffffff; }
+  20% { transform: translateX(-8px); background:#ffd6d6; }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  100% { transform: translateX(0); background:#ffffff; }
+}

@@ -161,9 +161,14 @@ function checkAnswer(choice){
   const q = quizQuestions[currentQuestion];
 
   const resultEl = document.getElementById("result");
+  const quizPage = document.getElementById("quizPage");
 
+  // リセット
   resultEl.classList.remove("result-correct");
   resultEl.classList.remove("result-wrong");
+
+  quizPage.classList.remove("correct-flash");
+  quizPage.classList.remove("wrong-shake");
 
   let correct = false;
 
@@ -176,12 +181,18 @@ function checkAnswer(choice){
 
     resultEl.innerText = "⭕️ 正解！！";
 
+    // ★正解アニメ
+    quizPage.classList.add("correct-flash");
+
   }else{
 
     resultEl.classList.add("result-wrong");
 
     resultEl.innerText =
     "❌ 不正解！！\n正解は " + q.answer;
+
+    // ★不正解アニメ
+    quizPage.classList.add("wrong-shake");
   }
 
   saveHistory(q.id, correct);
@@ -189,24 +200,13 @@ function checkAnswer(choice){
   updateProgressRate();
 
   saveProgress();
+
+  // ★アニメ解除（次の問題のため）
+  setTimeout(()=>{
+    quizPage.classList.remove("correct-flash");
+    quizPage.classList.remove("wrong-shake");
+  }, 600);
 }
-
-// ----------------------
-// 次へ
-// ----------------------
-function nextQuestion(){
-
-  if(!answered) return;
-
-  currentQuestion++;
-
-  if(currentQuestion < quizQuestions.length){
-    showQuestion();
-  }else{
-    finishQuiz();
-  }
-}
-
 // ----------------------
 // 戻る
 // ----------------------
@@ -403,3 +403,49 @@ function updateProgressRate(){
 // 初期化
 setMode("normal");
 setCount(5);
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener("touchstart", function(e){
+
+  touchStartX = e.changedTouches[0].screenX;
+
+});
+
+document.addEventListener("touchend", function(e){
+
+  touchEndX = e.changedTouches[0].screenX;
+
+  handleSwipe();
+
+});
+
+function handleSwipe(){
+
+  const diff = touchEndX - touchStartX;
+
+  // ある程度のスワイプじゃないと無視
+  if(Math.abs(diff) < 50) return;
+
+  // 右スワイプ → 戻る
+  if(diff > 0){
+
+    if(document.getElementById("quizPage") &&
+       !document.getElementById("quizPage").classList.contains("hidden")){
+
+      prevQuestion();
+    }
+
+  }
+
+  // 左スワイプ → 次へ
+  else{
+
+    if(document.getElementById("quizPage") &&
+       !document.getElementById("quizPage").classList.contains("hidden")){
+
+      nextQuestion();
+    }
+  }
+}
