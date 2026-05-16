@@ -2,26 +2,92 @@
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8">
-  <title>試験アプリ</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+<title>試験アプリ</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <h1>試験アプリ</h1>
+<div class="container">
 
-  <h2 id="question">問題読み込み中...</h2>
+<h1>試験アプリ</h1>
 
-  <div id="choices"></div>
+<div id="topPage">
 
-  <p id="result"></p>
+<h2>出題モード</h2>
 
-  <p id="score">
-    0問中0問正解
-  </p>
+<button onclick="startQuiz('normal')">
+順番に出題
+</button>
 
-  <script src="script.js"></script>
+<button onclick="startQuiz('random')">
+ランダム出題
+</button>
+
+<button onclick="startQuiz('weak')">
+苦手問題
+</button>
+
+<h2>問題数</h2>
+
+<div class="countButtons">
+
+<button onclick="setQuestionCount(5)">
+5問
+</button>
+
+<button onclick="setQuestionCount(10)">
+10問
+</button>
+
+<button onclick="setQuestionCount(20)">
+20問
+</button>
+
+</div>
+
+<p id="selectedCount">
+現在：5問
+</p>
+
+</div>
+
+<div id="quizPage" class="hidden">
+
+<p id="progress"></p>
+
+<h2 id="question"></h2>
+
+<div id="history"></div>
+
+<div id="choices"></div>
+
+<p id="result"></p>
+
+<button onclick="goTop()">
+トップへ戻る
+</button>
+
+</div>
+
+<div id="finishPage" class="hidden">
+
+<h2>終了！</h2>
+
+<p id="finalScore"></p>
+
+<button onclick="goTop()">
+トップへ戻る
+</button>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
