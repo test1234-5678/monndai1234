@@ -1,3 +1,360 @@
+let questions = [];
+let quizQuestions = [];
+let currentQuestion = 0;
+let correctCount = 0;
+
+let selectedMode = "normal";
+let selectedCount = 5;
+let answered = false;
+
+// ----------------------
+// データ読み込み
+// ----------------------
+fetch("questions.json")
+.then(r=>r.json())
+.then(data=>{
+
+  questions = data;
+
+  createQuestionList();
+  updateProgressRate();
+
+});
+
+// ----------------------
+// モード設定
+// ----------------------
+function setMode(mode){
+
+  selectedMode = mode;
+
+  document.getElementById("mode-normal").classList.remove("selected");
+  document.getElementById("mode-random").classList.remove("selected");
+  document.getElementById("mode-weak").classList.remove("selected");
+
+  document.getElementById("mode-" + mode).classList.add("selected");
+
+  updateSettings();
+}
+
+// ----------------------
+// 問題数
+// ----------------------
+function setCount(count){
+
+  selectedCount = count;
+
+  document.getElementById("count-5").classList.remove("selected");
+  document.getElementById("count-10").classList.remove("selected");
+  document.getElementById("count-20").classList.remove("selected");
+
+  document.getElementById("count-" + count).classList.add("selected");
+
+  updateSettings();
+}
+
+// ----------------------
+// 表示更新
+// ----------------------
+function updateSettings(){
+
+  let modeText = "";
+
+  if(selectedMode === "normal") modeText = "順番";
+  if(selectedMode === "random") modeText = "ランダム";
+  if(selectedMode === "weak") modeText = "苦手";
+
+  document.getElementById("settingsText").innerText =
+  modeText + " / " + selectedCount + "問";
+}
+
+// ----------------------
+// 開始（ここが重要）
+// ----------------------
+function startQuiz(){
+
+  correctCount = 0;
+
+  let temp = [...questions];
+
+  // ----------------------
+  // 順番モード（続き）
+  // ----------------------
+  if(selectedMode === "normal"){
+
+    let savedIndex =
+    localStorage.getItem("quiz_progress_index");
+
+    currentQuestion =
+    savedIndex ? parseInt(savedIndex) : 0;
+
+  }
+
+  // ----------------------
+  // ランダム（毎回リセット）
+  // ----------------------
+  else if(selectedMode === "random"){
+
+    temp.sort(()=>Math.random()-0.5);
+    currentQuestion = 0;
+
+  }
+
+  // ----------------------
+  // 苦手モード（過去3回の正答率）
+  // ----------------------
+  else if(selectedMode === "weak"){
+
+    temp.sort((a,b)=>{
+      return getRate(a.id) - getRate(b.id);
+    });
+
+    currentQuestion = 0;
+  }
+
+  quizQuestions = temp.slice(0, selectedCount);
+
+  showPage("quizPage");
+  showQuestion();
+}
+
+// ----------------------
+// 問題表示
+// ----------------------
+function showQuestion(){
+
+  answered = false;
+
+  const q = quizQuestions[currentQuestion];
+
+  document.getElementById("progress").innerText =
+  (currentQuestion+1) + " / " + quizQuestions.length;
+
+  document.getElementById("questionNumber").innerText =
+  "問題 " + q.number;
+
+  document.getElementById("question").innerText =
+  q.question;
+
+  showHistory(q.id);
+
+  document.getElementById("result").innerText = "";
+
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  let choices = [...q.choices];
+  choices.sort(()=>Math.random()-0.5);
+
+  choices.forEach(choice=>{
+
+    const button = document.createElement("button");
+    button.innerText = choice;
+
+    button.onclick = ()=>checkAnswer(choice);
+
+    choicesDiv.appendChild(button);
+
+  });
+
+  // ----------------------
+  // 順番モード進捗保存
+  // ----------------------
+  if(selectedMode === "normal"){
+    localStorage.setItem(
+      "quiz_progress_index",
+      currentQuestion
+    );
+  }
+}
+
+// ----------------------
+// 回答判定
+// ----------------------
+function checkAnswer(choice){
+
+  if(answered) return;
+
+  answered = true;
+
+  const q = quizQuestions[currentQuestion];
+
+  let correct = false;
+
+  if(choice === q.answer){
+
+    correct = true;
+    correctCount++;
+
+    document.getElementById("result").innerText =
+    "⭕️ 正解！！";
+
+  }else{
+
+    document.getElementById("result").innerText =
+    "❌ 不正解！！ 正解：" + q.answer;
+
+  }
+
+  saveHistory(q.id, correct);
+  createQuestionList();
+  updateProgressRate();
+}
+
+// ----------------------
+// 次へ
+// ----------------------
+function nextQuestion(){
+
+  if(!answered) return;
+
+  currentQuestion++;
+
+  if(currentQuestion < quizQuestions.length){
+
+    showQuestion();
+
+  }else{
+
+    finishQuiz();
+  }
+}
+
+// ----------------------
+// 戻る
+// ----------------------
+function prevQuestion(){
+
+  if(currentQuestion === 0) return;
+
+  currentQuestion--;
+  showQuestion();
+}
+
+// ----------------------
+// 終了
+// ----------------------
+function finishQuiz(){
+
+  showPage("finishPage");
+
+  localStorage.removeItem("quiz_progress_index");
+
+  const rate =
+  Math.round(correctCount / quizQuestions.length * 100);
+
+  document.getElementById("finalResult").innerText =
+  correctCount + " / " + quizQuestions.length +
+  " 正解\n正答率 " + rate + "%";
+}
+
+// ----------------------
+// 画面切替
+// ----------------------
+function showPage(id){
+
+  document.getElementById("topPage").classList.add("hidden");
+  document.getElementById("quizPage").classList.add("hidden");
+  document.getElementById("finishPage").classList.add("hidden");
+  document.getElementById("listPage").classList.add("hidden");
+
+  document.getElementById(id).classList.remove("hidden");
+}
+
+// ----------------------
+// 履歴保存（3回）
+// ----------------------
+function saveHistory(id, result){
+
+  let history =
+  JSON.parse(localStorage.getItem(id)) || [];
+
+  history.push(result);
+
+  if(history.length > 3){
+    history.shift();
+  }
+
+  localStorage.setItem(id, JSON.stringify(history));
+}
+
+// ----------------------
+// 履歴表示
+// ----------------------
+function showHistory(id){
+
+  let history =
+  JSON.parse(localStorage.getItem(id)) || [];
+
+  let text = "";
+
+  history.forEach(h=>{
+    text += h ? "◯ " : "× ";
+  });
+
+  document.getElementById("history").innerText =
+  "過去3回 " + text;
+}
+
+// ----------------------
+// 正答率（苦手判定用）
+// ----------------------
+function getRate(id){
+
+  let history =
+  JSON.parse(localStorage.getItem(id)) || [];
+
+  if(history.length === 0) return 0;
+
+  let correct = history.filter(x=>x).length;
+
+  return correct / history.length;
+}
+
+// ----------------------
+// 問題一覧作成（押して開始）
+// ----------------------
+function createQuestionList(){
+
+  const list = document.getElementById("questionList");
+  list.innerHTML = "";
+
+  questions.forEach((q,index)=>{
+
+    let history =
+    JSON.parse(localStorage.getItem(q.id)) || [];
+
+    let text = "";
+
+    history.forEach(h=>{
+      text += h ? "◯ " : "× ";
+    });
+
+    const button = document.createElement("button");
+
+    button.className = "questionItem";
+
+    button.innerHTML =
+    `<div class="questionRow">
+      <div>問題 ${q.number}</div>
+      <div class="questionHistory">${text}</div>
+    </div>`;
+
+    button.onclick = ()=>{
+      quizQuestions = [q];
+      currentQuestion = 0;
+      correctCount = 0;
+      showPage("quizPage");
+      showQuestion();
+    };
+
+    list.appendChild(button);
+  });
+}
+
+// ----------------------
+// 進捗率
+// ----------------------
 function updateProgressRate(){
 
   let complete = 0;
@@ -5,38 +362,23 @@ function updateProgressRate(){
   questions.forEach(q=>{
 
     let history =
-    JSON.parse(
-      localStorage.getItem(q.id)
-    ) || [];
+    JSON.parse(localStorage.getItem(q.id)) || [];
 
-    if(
-      history.length === 3
-      &&
-      history.every(x=>x)
-    ){
-
+    if(history.length === 3 && history.every(x=>x)){
       complete++;
-
     }
-
   });
 
   const rate =
-  Math.round(
-    complete
-    /
-    questions.length
-    *100
-  );
+  Math.round(complete / questions.length * 100);
 
-  document.getElementById(
-    "progressRate"
-  ).innerText =
+  document.getElementById("progressRate").innerText =
   "進捗率：" + rate + "%";
 
-  document.getElementById(
-    "progressFill"
-  ).style.width =
+  document.getElementById("progressFill").style.width =
   rate + "%";
-
 }
+
+// 初期化
+setMode("normal");
+setCount(5);
