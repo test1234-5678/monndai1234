@@ -1,0 +1,18 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+button {
+  display: block;
+  width: 80%;
+  margin: 10px auto;
+  padding: 15px;
+  font-size: 18px;
+}
+
+#result {
+  font-size: 24px;
+  margin-top: 20px;
+}
