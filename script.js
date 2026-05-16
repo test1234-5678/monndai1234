@@ -7,6 +7,8 @@ let selectedMode = "normal";
 let selectedCount = 5;
 let answered = false;
 
+const PROGRESS_KEY = "quiz_progress_index";
+
 // ----------------------
 // データ読み込み
 // ----------------------
@@ -75,42 +77,43 @@ function startQuiz(){
 
   correctCount = 0;
 
-  let temp = [...questions];
+  let startIndex = 0;
 
   if(selectedMode === "normal"){
 
-    let savedIndex =
-    localStorage.getItem("quiz_progress_index");
+    let saved =
+    localStorage.getItem(PROGRESS_KEY);
 
-    currentQuestion =
-    savedIndex ? parseInt(savedIndex) : 0;
+    startIndex =
+    saved ? parseInt(saved) : 0;
 
+    quizQuestions = questions.slice(startIndex);
+
+  }else{
+
+    let temp = [...questions];
+
+    if(selectedMode === "random"){
+      temp.sort(()=>Math.random()-0.5);
+    }
+
+    if(selectedMode === "weak"){
+      temp.sort((a,b)=>{
+        return getRate(a.id) - getRate(b.id);
+      });
+    }
+
+    quizQuestions = temp.slice(0, selectedCount);
   }
 
-  else if(selectedMode === "random"){
-
-    temp.sort(()=>Math.random()-0.5);
-    currentQuestion = 0;
-
-  }
-
-  else if(selectedMode === "weak"){
-
-    temp.sort((a,b)=>{
-      return getRate(a.id) - getRate(b.id);
-    });
-
-    currentQuestion = 0;
-  }
-
-  quizQuestions = temp.slice(0, selectedCount);
+  currentQuestion = 0;
 
   showPage("quizPage");
   showQuestion();
 }
 
 // ----------------------
-// 問題表示
+// 問題表示（ここが重要）
 // ----------------------
 function showQuestion(){
 
@@ -146,12 +149,8 @@ function showQuestion(){
 
   });
 
-  if(selectedMode === "normal"){
-    localStorage.setItem(
-      "quiz_progress_index",
-      currentQuestion
-    );
-  }
+  // ⭐ ここで「表示した時点で保存」
+  saveProgress();
 }
 
 // ----------------------
@@ -185,6 +184,9 @@ function checkAnswer(choice){
   saveHistory(q.id, correct);
   createQuestionList();
   updateProgressRate();
+
+  // ⭐ 回答後も保存更新
+  saveProgress();
 }
 
 // ----------------------
@@ -215,7 +217,7 @@ function prevQuestion(){
 }
 
 // ----------------------
-// ★ここが重要（完全復旧ホーム）
+// ホーム
 // ----------------------
 function goHome(){
 
@@ -225,8 +227,27 @@ function goHome(){
   answered = false;
 
   showPage("topPage");
-
   window.scrollTo(0,0);
+}
+
+// ----------------------
+// 自動セーブ（1問ごと）
+// ----------------------
+function saveProgress(){
+
+  if(selectedMode !== "normal") return;
+
+  let globalIndex =
+  questions.indexOf(quizQuestions[currentQuestion]);
+
+  if(globalIndex >= 0){
+
+    localStorage.setItem(
+      PROGRESS_KEY,
+      globalIndex + 1
+    );
+
+  }
 }
 
 // ----------------------
@@ -260,7 +281,7 @@ function showPage(id){
 }
 
 // ----------------------
-// 履歴
+// 以下は既存そのまま
 // ----------------------
 function saveHistory(id, result){
 
@@ -291,9 +312,6 @@ function showHistory(id){
   "過去3回 " + text;
 }
 
-// ----------------------
-// 正答率
-// ----------------------
 function getRate(id){
 
   let history =
@@ -306,9 +324,6 @@ function getRate(id){
   return correct / history.length;
 }
 
-// ----------------------
-// 一覧
-// ----------------------
 function createQuestionList(){
 
   const list = document.getElementById("questionList");
@@ -347,9 +362,6 @@ function createQuestionList(){
   });
 }
 
-// ----------------------
-// 進捗
-// ----------------------
 function updateProgressRate(){
 
   let complete = 0;
@@ -362,6 +374,7 @@ function updateProgressRate(){
     if(history.length === 3 && history.every(x=>x)){
       complete++;
     }
+
   });
 
   const rate =
