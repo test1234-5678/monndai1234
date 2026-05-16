@@ -131,6 +131,22 @@ function startQuiz(){
 
 }
 
+function startSingleQuestion(index){
+
+  currentQuestion = 0;
+
+  correctCount = 0;
+
+  quizQuestions = [
+    questions[index]
+  ];
+
+  showPage("quizPage");
+
+  showQuestion();
+
+}
+
 function showQuestion(){
 
   answered = false;
@@ -405,7 +421,7 @@ function createQuestionList(){
 
   list.innerHTML = "";
 
-  questions.forEach(q=>{
+  questions.forEach((q,index)=>{
 
     let history =
     JSON.parse(
@@ -420,21 +436,24 @@ function createQuestionList(){
 
     });
 
-    const div =
+    const button =
     document.createElement(
-      "div"
+      "button"
     );
 
-    div.className =
+    button.className =
     "questionItem";
 
-    div.innerText =
+    button.innerText =
     "問題"
     + q.number
     + " "
     + text;
 
-    list.appendChild(div);
+    button.onclick =
+    ()=>startSingleQuestion(index);
+
+    list.appendChild(button);
 
   });
 

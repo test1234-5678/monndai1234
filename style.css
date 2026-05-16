@@ -85,7 +85,7 @@ button{
 .bottomButtons button{
 
   flex:1;
-  background:#dddddd;
+  background:#b0b0b0;
 
 }
 
@@ -127,6 +127,8 @@ button{
   padding:12px;
   margin-top:10px;
   font-size:20px;
+  font-weight:bold;
+  width:100%;
 
 }
 
