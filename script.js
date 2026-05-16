@@ -4,9 +4,6 @@ let currentQuestion = 0;
 let correctCount = 0;
 let answered = false;
 
-// ======================
-// コンボ・設定
-// ======================
 let comboCount = 0;
 let selectedMode = "normal";
 let selectedCount = 5;
@@ -19,24 +16,28 @@ const TODAY_BEST_KEY = "quiz_today_best";
 const TODAY_DATE_KEY = "quiz_today_date";
 
 // ======================
-// 読み込み
+// 初期読み込み
 // ======================
 fetch("questions.json")
 .then(r => r.json())
 .then(data => {
+
   questions = data;
+
   createQuestionList();
   updateProgressRate();
   loadScores();
+
 })
 .catch(err => {
-  console.error("questions.json読み込みエラー:", err);
+  console.error("JSON読み込みエラー:", err);
 });
 
 // ======================
 // モード
 // ======================
 function setMode(mode){
+
   selectedMode = mode;
 
   document.getElementById("mode-normal").classList.remove("selected");
@@ -53,6 +54,7 @@ function setMode(mode){
 // 問題数
 // ======================
 function setCount(count){
+
   selectedCount = count;
 
   document.getElementById("count-5").classList.remove("selected");
@@ -66,10 +68,12 @@ function setCount(count){
 }
 
 // ======================
-// 表示
+// 表示更新
 // ======================
 function updateSettings(){
+
   let modeText = "";
+
   if(selectedMode === "normal") modeText = "順番";
   if(selectedMode === "random") modeText = "ランダム";
   if(selectedMode === "weak") modeText = "苦手";
@@ -102,7 +106,11 @@ function startQuiz(){
     temp.sort((a,b) => getRate(a.id) - getRate(b.id));
   }
 
-  quizQuestions = temp.slice(0, selectedCount);
+  // ★安全化
+  quizQuestions = temp
+    .filter(q => q && q.choices && q.choices.length > 0)
+    .slice(0, selectedCount);
+
   currentQuestion = 0;
 
   showPage("quizPage");
@@ -111,13 +119,23 @@ function startQuiz(){
 }
 
 // ======================
-// 問題表示
+// 問題表示（完全安定版）
 // ======================
 function showQuestion(){
 
   answered = false;
 
+  if(!quizQuestions || quizQuestions.length === 0){
+    console.error("問題がありません");
+    return;
+  }
+
   const q = quizQuestions[currentQuestion];
+
+  if(!q || !q.choices){
+    console.error("問題データ異常:", q);
+    return;
+  }
 
   document.getElementById("progress").innerText =
   (currentQuestion + 1) + " / " + quizQuestions.length;
@@ -131,20 +149,29 @@ function showQuestion(){
 
   showHistory(q.id);
 
-  const resultEl = document.getElementById("result");
-  resultEl.innerText = "";
+  document.getElementById("result").innerText = "";
 
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML = "";
 
-  let choices = [...q.choices];
+  let choices = Array.isArray(q.choices) ? [...q.choices] : [];
+
+  if(choices.length === 0){
+    console.error("選択肢なし:", q);
+    return;
+  }
+
   choices.sort(() => Math.random() - 0.5);
 
   choices.forEach(choice => {
+
+    if(choice === undefined) return;
+
     const btn = document.createElement("button");
     btn.innerText = choice;
     btn.onclick = () => checkAnswer(choice);
     choicesDiv.appendChild(btn);
+
   });
 
   loadScores();
@@ -156,6 +183,7 @@ function showQuestion(){
 function checkAnswer(choice){
 
   if(answered) return;
+
   answered = true;
 
   const q = quizQuestions[currentQuestion];
@@ -174,7 +202,7 @@ function checkAnswer(choice){
 
     quizPage.classList.add("correct-flash");
 
-  } else {
+  }else{
 
     comboCount = 0;
 
@@ -200,7 +228,7 @@ function checkAnswer(choice){
 }
 
 // ======================
-// コンボ称号
+// 称号
 // ======================
 function getTitle(c){
 
@@ -224,7 +252,7 @@ function updateHighScore(c){
 }
 
 // ======================
-// 今日ベスト
+// 今日スコア
 // ======================
 function updateTodayScore(c){
 
@@ -244,7 +272,7 @@ function updateTodayScore(c){
 }
 
 // ======================
-// スコア表示（安全版）
+// スコア表示（安全）
 // ======================
 function loadScores(){
 
@@ -285,6 +313,7 @@ function nextQuestion(){
 function prevQuestion(){
 
   if(currentQuestion === 0) return;
+
   currentQuestion--;
   showQuestion();
 }
