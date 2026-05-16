@@ -6,7 +6,11 @@ let currentQuestion = 0;
 
 let correctCount = 0;
 
-let mode = "normal";
+let selectedMode = "normal";
+
+let selectedCount = 5;
+
+let answered = false;
 
 fetch("questions.json")
 .then(r=>r.json())
@@ -16,15 +20,55 @@ fetch("questions.json")
 
 });
 
-function selectMode(selected){
+function setMode(mode){
 
-  mode = selected;
+  selectedMode = mode;
 
-  showPage("page2");
+  updateSettings();
 
 }
 
-function startQuiz(count){
+function setCount(count){
+
+  selectedCount = count;
+
+  updateSettings();
+
+}
+
+function updateSettings(){
+
+  let modeText = "";
+
+  if(selectedMode === "normal"){
+
+    modeText = "順番";
+
+  }
+
+  if(selectedMode === "random"){
+
+    modeText = "ランダム";
+
+  }
+
+  if(selectedMode === "weak"){
+
+    modeText = "苦手";
+
+  }
+
+  document.getElementById(
+    "settingsText"
+  ).innerText =
+  modeText
+  + " / "
+  + selectedCount
+  + "問";
+
+}
+
+function startQuiz(){
 
   currentQuestion = 0;
 
@@ -32,13 +76,13 @@ function startQuiz(count){
 
   let temp = [...questions];
 
-  if(mode === "random"){
+  if(selectedMode === "random"){
 
     temp.sort(()=>Math.random()-0.5);
 
   }
 
-  if(mode === "weak"){
+  if(selectedMode === "weak"){
 
     temp.sort((a,b)=>
       getRate(a.id)
@@ -49,15 +93,17 @@ function startQuiz(count){
   }
 
   quizQuestions =
-  temp.slice(0,count);
+  temp.slice(0,selectedCount);
 
-  showPage("page3");
+  showPage("quizPage");
 
   showQuestion();
 
 }
 
 function showQuestion(){
+
+  answered = false;
 
   const q =
   quizQuestions[currentQuestion];
@@ -75,6 +121,10 @@ function showQuestion(){
   q.question;
 
   showHistory(q.id);
+
+  document.getElementById(
+    "result"
+  ).innerText = "";
 
   const choicesDiv =
   document.getElementById(
@@ -113,6 +163,12 @@ function showQuestion(){
 
 function checkAnswer(choice){
 
+  if(answered){
+    return;
+  }
+
+  answered = true;
+
   const q =
   quizQuestions[currentQuestion];
 
@@ -143,26 +199,38 @@ function checkAnswer(choice){
     correct
   );
 
+}
+
+function nextQuestion(){
+
+  if(!answered){
+    return;
+  }
+
   currentQuestion++;
 
-  setTimeout(()=>{
+  if(currentQuestion
+    < quizQuestions.length){
 
-    document.getElementById(
-      "result"
-    ).innerText = "";
+    showQuestion();
 
-    if(currentQuestion
-      < quizQuestions.length){
+  }else{
 
-      showQuestion();
+    finishQuiz();
 
-    }else{
+  }
 
-      finishQuiz();
+}
 
-    }
+function prevQuestion(){
 
-  },1000);
+  if(currentQuestion === 0){
+    return;
+  }
+
+  currentQuestion--;
+
+  showQuestion();
 
 }
 
@@ -193,22 +261,18 @@ function finishQuiz(){
 
 function goHome(){
 
-  showPage("page1");
+  showPage("topPage");
 
 }
 
 function showPage(id){
 
   document.getElementById(
-    "page1"
+    "topPage"
   ).classList.add("hidden");
 
   document.getElementById(
-    "page2"
-  ).classList.add("hidden");
-
-  document.getElementById(
-    "page3"
+    "quizPage"
   ).classList.add("hidden");
 
   document.getElementById(

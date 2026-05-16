@@ -2,7 +2,9 @@
 <html lang="ja">
 
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
@@ -15,55 +17,60 @@ href="style.css">
 
 <body>
 
-<button id="homeButton"
-onclick="goHome()">
-🏠
-</button>
-
 <div class="container">
 
-<!-- 画面1 -->
-<div id="page1">
+<!-- トップ -->
+
+<div id="topPage">
 
 <h1>試験アプリ</h1>
 
 <h2>出題モード</h2>
 
-<button onclick="selectMode('normal')">
+<button onclick="setMode('normal')">
 順番に出題
 </button>
 
-<button onclick="selectMode('random')">
+<button onclick="setMode('random')">
 ランダム出題
 </button>
 
-<button onclick="selectMode('weak')">
+<button onclick="setMode('weak')">
 苦手問題
 </button>
 
-</div>
+<h2>問題数</h2>
 
-<!-- 画面2 -->
-<div id="page2" class="hidden">
+<div class="countArea">
 
-<h2>問題数を選択</h2>
-
-<button onclick="startQuiz(5)">
+<button onclick="setCount(5)">
 5問
 </button>
 
-<button onclick="startQuiz(10)">
+<button onclick="setCount(10)">
 10問
 </button>
 
-<button onclick="startQuiz(20)">
+<button onclick="setCount(20)">
 20問
 </button>
 
 </div>
 
-<!-- 画面3 -->
-<div id="page3" class="hidden">
+<p id="settingsText">
+順番 / 5問
+</p>
+
+<button onclick="startQuiz()">
+開始
+</button>
+
+</div>
+
+<!-- 問題 -->
+
+<div id="quizPage"
+class="hidden">
 
 <p id="progress"></p>
 
@@ -75,9 +82,26 @@ onclick="goHome()">
 
 <p id="result"></p>
 
+<div class="bottomButtons">
+
+<button onclick="prevQuestion()">
+戻る
+</button>
+
+<button onclick="goHome()">
+🏠
+</button>
+
+<button onclick="nextQuestion()">
+次へ
+</button>
+
 </div>
 
-<!-- 終了画面 -->
+</div>
+
+<!-- 結果 -->
+
 <div id="finishPage"
 class="hidden">
 

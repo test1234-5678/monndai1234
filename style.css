@@ -28,12 +28,30 @@ h1,h2,p{
 
 button{
 
-  width:100%;
-  padding:18px;
-  margin-top:12px;
   border:none;
   border-radius:12px;
-  font-size:22px;
+  padding:18px;
+  font-size:20px;
+  margin-top:10px;
+
+}
+
+#topPage button{
+
+  width:100%;
+
+}
+
+.countArea{
+
+  display:flex;
+  gap:10px;
+
+}
+
+.countArea button{
+
+  flex:1;
 
 }
 
@@ -45,22 +63,23 @@ button{
 
 }
 
-#homeButton{
+#choices button{
 
-  position:fixed;
-  top:10px;
-  left:10px;
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  font-size:24px;
-  z-index:1000;
+  width:100%;
 
 }
 
-#history{
+.bottomButtons{
 
-  font-size:24px;
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+
+}
+
+.bottomButtons button{
+
+  flex:1;
 
 }
 
@@ -68,5 +87,11 @@ button{
 
   font-size:28px;
   margin-top:20px;
+
+}
+
+#history{
+
+  font-size:22px;
 
 }
