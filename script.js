@@ -1,5 +1,5 @@
 //////////////////////////////
-// 1. グローバル変数
+// グローバル変数
 //////////////////////////////
 
 let questions = [];
@@ -14,10 +14,9 @@ let selectedCount = 5;
 
 const HIGH_SCORE_KEY = "quiz_high_score";
 const TODAY_BEST_KEY = "quiz_today_best";
-const TODAY_DATE_KEY = "quiz_today_date";
 
 //////////////////////////////
-// 2. 初期読み込み
+// 初期読み込み
 //////////////////////////////
 
 fetch("questions.json")
@@ -37,7 +36,7 @@ fetch("questions.json")
 });
 
 //////////////////////////////
-// 3. モード設定
+// モード
 //////////////////////////////
 
 function setMode(mode){
@@ -53,11 +52,10 @@ function setMode(mode){
   if(target) target.classList.add("selected");
 
   updateSettingsSafe();
-  loadScoresSafe();
 }
 
 //////////////////////////////
-// 4. 問題数設定
+// 問題数
 //////////////////////////////
 
 function setCount(count){
@@ -73,11 +71,10 @@ function setCount(count){
   if(target) target.classList.add("selected");
 
   updateSettingsSafe();
-  loadScoresSafe();
 }
 
 //////////////////////////////
-// 5. 設定表示
+// 表示更新
 //////////////////////////////
 
 function updateSettingsSafe(){
@@ -93,7 +90,7 @@ function updateSettingsSafe(){
 }
 
 //////////////////////////////
-// 6. 開始処理
+// 開始
 //////////////////////////////
 
 function startQuiz(){
@@ -101,6 +98,7 @@ function startQuiz(){
   correctCount = 0;
   answered = false;
   currentQuestion = 0;
+  comboCount = 0;
 
   let temp = Array.isArray(questions) ? [...questions] : [];
 
@@ -115,12 +113,14 @@ function startQuiz(){
   }
 
   if(selectedMode === "weak"){
-    temp.sort((a,b) => getRateSafe(a.id) - getRateSafe(b.id));
+    temp.sort(() => Math.random() - 0.5);
   }
 
-  // ★絶対に空にしない
   quizQuestions = temp.filter(q =>
-    q && q.question && Array.isArray(q.choices)
+    q &&
+    typeof q.question === "string" &&
+    Array.isArray(q.choices) &&
+    typeof q.answer === "string"
   );
 
   quizQuestions = quizQuestions.slice(0, selectedCount);
@@ -130,43 +130,51 @@ function startQuiz(){
     return;
   }
 
-  showPageSafe("quizPage");
+  showPage("quizPage");
   showQuestionSafe();
-  loadScoresSafe();
 }
 
 //////////////////////////////
-// 7. 問題表示
+// 問題表示（最重要）
 //////////////////////////////
 
 function showQuestionSafe(){
 
   answered = false;
 
-  const q = quizQuestions[currentQuestion];
-
-  if(!q){
-    console.error("問題なし");
+  if(!Array.isArray(quizQuestions) || quizQuestions.length === 0){
+    console.warn("quizQuestions空");
     return;
   }
 
-  const progress = document.getElementById("progress");
-  if(progress){
-    progress.innerText =
-    (currentQuestion + 1) + " / " + quizQuestions.length;
+  if(currentQuestion < 0) currentQuestion = 0;
+  if(currentQuestion >= quizQuestions.length) currentQuestion = 0;
+
+  const q = quizQuestions[currentQuestion];
+
+  if(!q){
+    console.warn("問題なし");
+    return;
   }
 
-  const question = document.getElementById("question");
-  if(question){
-    question.innerText = q.question || "";
-  }
+  document.getElementById("question").innerText =
+  q.question || "";
+
+  document.getElementById("progress").innerText =
+  (currentQuestion + 1) + " / " + quizQuestions.length;
 
   const choicesDiv = document.getElementById("choices");
+
   if(!choicesDiv) return;
 
   choicesDiv.innerHTML = "";
 
   let choices = Array.isArray(q.choices) ? [...q.choices] : [];
+
+  // ★絶対保証（空防止）
+  if(choices.length === 0){
+    choices = ["データなし"];
+  }
 
   choices.sort(() => Math.random() - 0.5);
 
@@ -174,17 +182,17 @@ function showQuestionSafe(){
 
     const btn = document.createElement("button");
     btn.innerText = c;
+
     btn.onclick = () => checkAnswerSafe(c);
 
     choicesDiv.appendChild(btn);
   });
 
   showHistorySafe(q.id);
-  loadScoresSafe();
 }
 
 //////////////////////////////
-// 8. 回答処理
+// 回答
 //////////////////////////////
 
 function checkAnswerSafe(choice){
@@ -203,29 +211,24 @@ function checkAnswerSafe(choice){
     correctCount++;
     comboCount++;
 
-    if(result){
-      result.innerText =
-      "⭕️ 正解！！\nコンボ：" + comboCount;
-    }
+    result.innerText =
+    "⭕️ 正解！！\nコンボ：" + comboCount;
 
   } else {
 
     comboCount = 0;
 
-    if(result){
-      result.innerText =
-      "❌ 不正解！！\n正解：" + q.answer;
-    }
+    result.innerText =
+    "❌ 不正解！！\n正解：" + q.answer;
   }
 
   saveHistorySafe(q.id, correct);
   updateProgressRateSafe();
   loadScoresSafe();
-  createQuestionListSafe();
 }
 
 //////////////////////////////
-// 9. 次へ・戻る
+// 次へ・戻る
 //////////////////////////////
 
 function nextQuestion(){
@@ -242,12 +245,13 @@ function nextQuestion(){
 function prevQuestion(){
 
   if(currentQuestion <= 0) return;
+
   currentQuestion--;
   showQuestionSafe();
 }
 
 //////////////////////////////
-// 10. ホーム
+// ホーム
 //////////////////////////////
 
 function goHome(){
@@ -258,39 +262,32 @@ function goHome(){
   answered = false;
   comboCount = 0;
 
-  showPageSafe("topPage");
-  loadScoresSafe();
+  showPage("topPage");
 }
 
 //////////////////////////////
-// 11. 終了
+// 終了
 //////////////////////////////
 
 function finishQuizSafe(){
 
-  showPageSafe("finishPage");
+  showPage("finishPage");
 
   const rate =
   quizQuestions.length > 0
   ? Math.round(correctCount / quizQuestions.length * 100)
   : 0;
 
-  const el = document.getElementById("finalResult");
-
-  if(el){
-    el.innerText =
-    correctCount + " / " + quizQuestions.length +
-    " 正解\n正答率 " + rate + "%";
-  }
-
-  loadScoresSafe();
+  document.getElementById("finalResult").innerText =
+  correctCount + " / " + quizQuestions.length +
+  " 正解\n正答率 " + rate + "%";
 }
 
 //////////////////////////////
-// 12. 画面切替
+// 画面切替
 //////////////////////////////
 
-function showPageSafe(id){
+function showPage(id){
 
   ["topPage","quizPage","finishPage","listPage"].forEach(p=>{
     const el = document.getElementById(p);
@@ -302,7 +299,7 @@ function showPageSafe(id){
 }
 
 //////////////////////////////
-// 13. 履歴
+// 履歴
 //////////////////////////////
 
 function saveHistorySafe(id, result){
@@ -328,42 +325,7 @@ function showHistorySafe(id){
 }
 
 //////////////////////////////
-// 14. レート
-//////////////////////////////
-
-function getRateSafe(id){
-
-  let h = JSON.parse(localStorage.getItem(id) || "[]");
-
-  if(h.length === 0) return 0;
-
-  return h.filter(x => x).length / h.length;
-}
-
-//////////////////////////////
-// 15. スコア
-//////////////////////////////
-
-function loadScoresSafe(){
-
-  const r1 = document.getElementById("row1");
-  const r2 = document.getElementById("row2");
-
-  if(!r1 || !r2) return;
-
-  let high = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || 0);
-  let today = parseInt(localStorage.getItem(TODAY_BEST_KEY) || 0);
-
-  r1.innerText =
-  "連続正答：" + comboCount +
-  " / 今日最高：" + today;
-
-  r2.innerText =
-  "ハイスコア：" + high;
-}
-
-//////////////////////////////
-// 16. 進捗
+// 進捗
 //////////////////////////////
 
 function updateProgressRateSafe(){
@@ -387,7 +349,7 @@ function updateProgressRateSafe(){
 }
 
 //////////////////////////////
-// 17. 問題一覧
+// 問題一覧
 //////////////////////////////
 
 function createQuestionListSafe(){
@@ -397,16 +359,16 @@ function createQuestionListSafe(){
 
   list.innerHTML = "";
 
-  (questions || []).forEach(q => {
+  questions.forEach(q => {
 
     const btn = document.createElement("button");
 
-    btn.innerText = q.question || "問題";
+    btn.innerText = q.question || "";
 
     btn.onclick = () => {
       quizQuestions = [q];
       currentQuestion = 0;
-      showPageSafe("quizPage");
+      showPage("quizPage");
       showQuestionSafe();
     };
 
