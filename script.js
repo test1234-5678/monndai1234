@@ -5,34 +5,38 @@ let correctCount = 0;
 let answered = false;
 
 // ======================
-// コンボ・スコア
+// コンボ・設定
 // ======================
 let comboCount = 0;
+let selectedMode = "normal";
+let selectedCount = 5;
 
+// ======================
+// スコアキー
+// ======================
 const HIGH_SCORE_KEY = "quiz_high_score";
 const TODAY_BEST_KEY = "quiz_today_best";
 const TODAY_DATE_KEY = "quiz_today_date";
 
 // ======================
-// 初期読み込み
+// 読み込み
 // ======================
 fetch("questions.json")
-.then(r=>r.json())
-.then(data=>{
-
+.then(r => r.json())
+.then(data => {
   questions = data;
-
   createQuestionList();
   updateProgressRate();
   loadScores();
-
+})
+.catch(err => {
+  console.error("questions.json読み込みエラー:", err);
 });
 
 // ======================
 // モード
 // ======================
 function setMode(mode){
-
   selectedMode = mode;
 
   document.getElementById("mode-normal").classList.remove("selected");
@@ -42,13 +46,13 @@ function setMode(mode){
   document.getElementById("mode-" + mode).classList.add("selected");
 
   updateSettings();
+  loadScores();
 }
 
 // ======================
 // 問題数
 // ======================
 function setCount(count){
-
   selectedCount = count;
 
   document.getElementById("count-5").classList.remove("selected");
@@ -58,6 +62,20 @@ function setCount(count){
   document.getElementById("count-" + count).classList.add("selected");
 
   updateSettings();
+  loadScores();
+}
+
+// ======================
+// 表示
+// ======================
+function updateSettings(){
+  let modeText = "";
+  if(selectedMode === "normal") modeText = "順番";
+  if(selectedMode === "random") modeText = "ランダム";
+  if(selectedMode === "weak") modeText = "苦手";
+
+  document.getElementById("settingsText").innerText =
+  modeText + " / " + selectedCount + "問";
 }
 
 // ======================
@@ -71,20 +89,17 @@ function startQuiz(){
   let temp = [...questions];
 
   if(selectedMode === "normal"){
-
     let saved = localStorage.getItem("quiz_progress_index");
     let startIndex = saved ? parseInt(saved) : 0;
-
     temp = questions.slice(startIndex);
+  }
 
-  }else if(selectedMode === "random"){
+  if(selectedMode === "random"){
+    temp.sort(() => Math.random() - 0.5);
+  }
 
-    temp.sort(()=>Math.random()-0.5);
-
-  }else if(selectedMode === "weak"){
-
-    temp.sort((a,b)=>getRate(a.id)-getRate(b.id));
-
+  if(selectedMode === "weak"){
+    temp.sort((a,b) => getRate(a.id) - getRate(b.id));
   }
 
   quizQuestions = temp.slice(0, selectedCount);
@@ -92,7 +107,6 @@ function startQuiz(){
 
   showPage("quizPage");
   showQuestion();
-
   loadScores();
 }
 
@@ -106,38 +120,33 @@ function showQuestion(){
   const q = quizQuestions[currentQuestion];
 
   document.getElementById("progress").innerText =
-  (currentQuestion+1) + " / " + quizQuestions.length;
+  (currentQuestion + 1) + " / " + quizQuestions.length;
 
   const globalIndex = questions.indexOf(q);
 
   document.getElementById("questionNumber").innerText =
   "問題 " + (globalIndex + 1);
 
-  document.getElementById("question").innerText =
-  q.question;
+  document.getElementById("question").innerText = q.question;
 
   showHistory(q.id);
 
   const resultEl = document.getElementById("result");
   resultEl.innerText = "";
-  resultEl.className = "";
 
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML = "";
 
   let choices = [...q.choices];
-  choices.sort(()=>Math.random()-0.5);
+  choices.sort(() => Math.random() - 0.5);
 
-  choices.forEach(choice=>{
-
+  choices.forEach(choice => {
     const btn = document.createElement("button");
     btn.innerText = choice;
-    btn.onclick = ()=>checkAnswer(choice);
+    btn.onclick = () => checkAnswer(choice);
     choicesDiv.appendChild(btn);
-
   });
 
-  saveProgress();
   loadScores();
 }
 
@@ -147,11 +156,9 @@ function showQuestion(){
 function checkAnswer(choice){
 
   if(answered) return;
-
   answered = true;
 
   const q = quizQuestions[currentQuestion];
-  const resultEl = document.getElementById("result");
   const quizPage = document.getElementById("quizPage");
 
   let correct = false;
@@ -162,103 +169,100 @@ function checkAnswer(choice){
     correctCount++;
     comboCount++;
 
-    resultEl.innerText =
-    "⭕️ 正解！！\n🔥コンボ：" + comboCount + "\n" + getTitle(comboCount);
+    document.getElementById("result").innerText =
+    "⭕️ 正解！！\nコンボ：" + comboCount + " " + getTitle(comboCount);
 
     quizPage.classList.add("correct-flash");
 
-  }else{
+  } else {
 
     comboCount = 0;
 
-    resultEl.innerText =
-    "❌ 不正解！！\n正解は " + q.answer;
+    document.getElementById("result").innerText =
+    "❌ 不正解！！\n正解：" + q.answer;
 
     quizPage.classList.add("wrong-shake");
-
   }
 
-  updateTodayScore(comboCount);
   updateHighScore(comboCount);
+  updateTodayScore(comboCount);
 
   saveHistory(q.id, correct);
   createQuestionList();
   updateProgressRate();
-  saveProgress();
 
   loadScores();
 
-  setTimeout(()=>{
-
+  setTimeout(() => {
     quizPage.classList.remove("correct-flash");
     quizPage.classList.remove("wrong-shake");
-
-  },600);
+  }, 500);
 }
 
 // ======================
 // コンボ称号
 // ======================
-function getTitle(combo){
+function getTitle(c){
 
-  if(combo >= 100) return "👑 LEGEND";
-  if(combo >= 50) return "🔥 MASTER";
-  if(combo >= 20) return "🚀 EXPERT";
-  if(combo >= 5) return "⭐ GOOD";
+  if(c >= 100) return "👑 LEGEND";
+  if(c >= 50) return "🔥 MASTER";
+  if(c >= 20) return "🚀 EXPERT";
+  if(c >= 5) return "⭐ GOOD";
   return "";
-
 }
 
 // ======================
-// 今日スコア
+// ハイスコア
 // ======================
-function updateTodayScore(combo){
+function updateHighScore(c){
+
+  let high = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || 0);
+
+  if(c > high){
+    localStorage.setItem(HIGH_SCORE_KEY, c);
+  }
+}
+
+// ======================
+// 今日ベスト
+// ======================
+function updateTodayScore(c){
 
   let today = new Date().toDateString();
-  let savedDate = localStorage.getItem(TODAY_DATE_KEY);
+  let saved = localStorage.getItem(TODAY_DATE_KEY);
 
-  if(savedDate !== today){
+  if(saved !== today){
     localStorage.setItem(TODAY_DATE_KEY, today);
     localStorage.setItem(TODAY_BEST_KEY, 0);
   }
 
   let best = parseInt(localStorage.getItem(TODAY_BEST_KEY) || 0);
 
-  if(combo > best){
-    localStorage.setItem(TODAY_BEST_KEY, combo);
+  if(c > best){
+    localStorage.setItem(TODAY_BEST_KEY, c);
   }
-
 }
 
 // ======================
-// ハイスコア
-// ======================
-function updateHighScore(combo){
-
-  let best = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || 0);
-
-  if(combo > best){
-    localStorage.setItem(HIGH_SCORE_KEY, combo);
-  }
-
-}
-
-// ======================
-// スコア表示
+// スコア表示（安全版）
 // ======================
 function loadScores(){
+
+  const r1 = document.getElementById("row1");
+  const r2 = document.getElementById("row2");
+
+  if(!r1 || !r2) return;
 
   let high = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || 0);
   let today = parseInt(localStorage.getItem(TODAY_BEST_KEY) || 0);
 
-  document.getElementById("row1").innerText =
+  r1.innerText =
   "現在の連続正答数：" + comboCount +
   "    今日の最高：" + today;
 
-  document.getElementById("row2").innerText =
+  r2.innerText =
   "ハイスコア：" + high +
   "    称号：" + getTitle(high);
-
 }
 
 // ======================
@@ -281,7 +285,6 @@ function nextQuestion(){
 function prevQuestion(){
 
   if(currentQuestion === 0) return;
-
   currentQuestion--;
   showQuestion();
 }
@@ -295,7 +298,6 @@ function goHome(){
   currentQuestion = 0;
   correctCount = 0;
   answered = false;
-
   comboCount = 0;
 
   showPage("topPage");
@@ -330,37 +332,4 @@ function showPage(id){
   document.getElementById("listPage").classList.add("hidden");
 
   document.getElementById(id).classList.remove("hidden");
-
 }
-
-// ======================
-// スワイプ
-// ======================
-let touchStartX = 0;
-
-document.addEventListener("touchstart", e=>{
-
-  if(e.target.tagName === "BUTTON") return;
-
-  touchStartX = e.changedTouches[0].screenX;
-
-});
-
-document.addEventListener("touchend", e=>{
-
-  if(e.target.tagName === "BUTTON") return;
-
-  const page = document.getElementById("quizPage");
-  if(page.classList.contains("hidden")) return;
-
-  let diff = e.changedTouches[0].screenX - touchStartX;
-
-  if(Math.abs(diff) < 60) return;
-
-  if(diff > 0){
-    prevQuestion();
-  }else{
-    nextQuestion();
-  }
-
-});
