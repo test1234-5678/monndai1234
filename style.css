@@ -157,3 +157,18 @@ button{
   background:#2d6cdf;
 
 }
+
+.questionRow{
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+}
+
+.questionHistory{
+
+  min-width:90px;
+  text-align:right;
+
+}

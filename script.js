@@ -235,14 +235,14 @@ function checkAnswer(choice){
     document.getElementById(
       "result"
     ).innerText =
-    "◯ 正解";
+    "⭕️ 正解！！";
 
   }else{
 
     document.getElementById(
       "result"
     ).innerText =
-    "× 正解：" + q.answer;
+    "❌不正解！！ 正解：" + q.answer;
 
   }
 
@@ -444,11 +444,20 @@ function createQuestionList(){
     button.className =
     "questionItem";
 
-    button.innerText =
-    "問題"
-    + q.number
-    + " "
-    + text;
+    button.innerHTML =
+`
+<div class="questionRow">
+
+<div>
+問題 ${q.number}
+</div>
+
+<div class="questionHistory">
+${text}
+</div>
+
+</div>
+`;
 
     button.onclick =
     ()=>startSingleQuestion(index);
