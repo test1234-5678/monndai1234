@@ -78,32 +78,26 @@ function startQuiz(){
   correctCount = 0;
 
   let temp = [...questions];
-  let startIndex = 0;
 
-  // 順番モード（途中再開）
+  // 順番モード（続き）
   if(selectedMode === "normal"){
 
     let saved =
     localStorage.getItem(PROGRESS_KEY);
 
-    startIndex =
-    saved ? parseInt(saved) : 0;
+    let startIndex = saved ? parseInt(saved) : 0;
 
     temp = questions.slice(startIndex);
   }
 
   // ランダム
   else if(selectedMode === "random"){
-
     temp.sort(()=>Math.random()-0.5);
   }
 
   // 苦手
   else if(selectedMode === "weak"){
-
-    temp.sort((a,b)=>{
-      return getRate(a.id) - getRate(b.id);
-    });
+    temp.sort((a,b)=>getRate(a.id)-getRate(b.id));
   }
 
   quizQuestions = temp.slice(0, selectedCount);
@@ -125,7 +119,6 @@ function showQuestion(){
   document.getElementById("progress").innerText =
   (currentQuestion+1) + " / " + quizQuestions.length;
 
-  // ★番号は安全に計算
   const globalIndex = questions.indexOf(q);
 
   document.getElementById("questionNumber").innerText =
@@ -153,7 +146,6 @@ function showQuestion(){
 
   });
 
-  // ★表示時点でも保存
   saveProgress();
 }
 
@@ -168,6 +160,11 @@ function checkAnswer(choice){
 
   const q = quizQuestions[currentQuestion];
 
+  const resultEl = document.getElementById("result");
+
+  resultEl.classList.remove("result-correct");
+  resultEl.classList.remove("result-wrong");
+
   let correct = false;
 
   if(choice === q.answer){
@@ -175,22 +172,22 @@ function checkAnswer(choice){
     correct = true;
     correctCount++;
 
-    document.getElementById("result").innerText =
-    "⭕️ 正解！！";
+    resultEl.classList.add("result-correct");
+
+    resultEl.innerText = "⭕️ 正解！！";
 
   }else{
 
-    document.getElementById("result").innerText =
-    "❌ 不正解！！ 正解：" + q.answer;
+    resultEl.classList.add("result-wrong");
 
+    resultEl.innerText =
+    "❌ 不正解！！\n正解は " + q.answer;
   }
 
   saveHistory(q.id, correct);
-
   createQuestionList();
   updateProgressRate();
 
-  // ★回答後も保存
   saveProgress();
 }
 
@@ -222,7 +219,7 @@ function prevQuestion(){
 }
 
 // ----------------------
-// ホーム（完全安定）
+// ホーム
 // ----------------------
 function goHome(){
 
@@ -232,18 +229,18 @@ function goHome(){
   answered = false;
 
   showPage("topPage");
-
   window.scrollTo(0,0);
 }
 
 // ----------------------
-// 進捗保存（1問ずつ）
+// 進捗保存（1問ごと）
 // ----------------------
 function saveProgress(){
 
   if(selectedMode !== "normal") return;
 
   const q = quizQuestions[currentQuestion];
+
   const globalIndex = questions.indexOf(q);
 
   if(globalIndex >= 0){
@@ -319,7 +316,7 @@ function showHistory(id){
 }
 
 // ----------------------
-// 正答率（苦手用）
+// 正答率
 // ----------------------
 function getRate(id){
 
@@ -363,9 +360,10 @@ function createQuestionList(){
     </div>`;
 
     button.onclick = ()=>{
-      quizQuestions = [q];
-      currentQuestion = 0;
+      quizQuestions = questions;
+      currentQuestion = questions.indexOf(q);
       correctCount = 0;
+
       showPage("quizPage");
       showQuestion();
     };
@@ -375,7 +373,7 @@ function createQuestionList(){
 }
 
 // ----------------------
-// 進捗表示
+// 進捗
 // ----------------------
 function updateProgressRate(){
 
