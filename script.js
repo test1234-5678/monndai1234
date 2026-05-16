@@ -18,6 +18,10 @@ fetch("questions.json")
 
   questions = data;
 
+  createQuestionList();
+
+  updateProgressRate();
+
 });
 
 function setMode(mode){
@@ -73,21 +77,15 @@ function updateSettings(){
   let modeText = "";
 
   if(selectedMode === "normal"){
-
     modeText = "順番";
-
   }
 
   if(selectedMode === "random"){
-
     modeText = "ランダム";
-
   }
 
   if(selectedMode === "weak"){
-
     modeText = "苦手";
-
   }
 
   document.getElementById(
@@ -146,6 +144,12 @@ function showQuestion(){
   (currentQuestion+1)
   + " / "
   + quizQuestions.length;
+
+  document.getElementById(
+    "questionNumber"
+  ).innerText =
+  "問題 "
+  + q.number;
 
   document.getElementById(
     "question"
@@ -230,6 +234,10 @@ function checkAnswer(choice){
     q.id,
     correct
   );
+
+  createQuestionList();
+
+  updateProgressRate();
 
 }
 
@@ -381,6 +389,88 @@ function getRate(id){
   return correct
   /
   history.length;
+
+}
+
+function createQuestionList(){
+
+  const list =
+  document.getElementById(
+    "questionList"
+  );
+
+  list.innerHTML = "";
+
+  questions.forEach(q=>{
+
+    let history =
+    JSON.parse(
+      localStorage.getItem(q.id)
+    ) || [];
+
+    let text = "";
+
+    history.forEach(h=>{
+
+      text += h ? "⭕ " : "❌ ";
+
+    });
+
+    const div =
+    document.createElement(
+      "div"
+    );
+
+    div.className =
+    "questionItem";
+
+    div.innerText =
+    "問題"
+    + q.number
+    + " "
+    + text;
+
+    list.appendChild(div);
+
+  });
+
+}
+
+function updateProgressRate(){
+
+  let complete = 0;
+
+  questions.forEach(q=>{
+
+    let history =
+    JSON.parse(
+      localStorage.getItem(q.id)
+    ) || [];
+
+    if(
+      history.length === 3
+      &&
+      history.every(x=>x)
+    ){
+
+      complete++;
+
+    }
+
+  });
+
+  const rate =
+  Math.round(
+    complete
+    /
+    questions.length
+    *100
+  );
+
+  document.getElementById(
+    "progressRate"
+  ).innerText =
+  rate + "%";
 
 }
 
