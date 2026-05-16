@@ -1,38 +1,104 @@
 let questions = [];
+let quizQuestions = [];
+
 let currentQuestion = 0;
 let correctCount = 0;
+let questionCount = 5;
 
 fetch("questions.json")
-  .then(response => response.json())
-  .then(data => {
-    questions = data;
+.then(r=>r.json())
+.then(data=>{
+  questions = data;
+});
 
-    // ランダム並び替え
-    questions.sort(() => Math.random() - 0.5);
+function setQuestionCount(count){
 
-    showQuestion();
-  });
+  questionCount = count;
 
-function showQuestion() {
+  document.getElementById(
+    "selectedCount"
+  ).innerText =
+  "現在：" + count + "問";
 
-  const q = questions[currentQuestion];
+}
 
-  document.getElementById("question").innerText =
-    q.question;
+function startQuiz(mode){
+
+  currentQuestion = 0;
+  correctCount = 0;
+
+  let temp = [...questions];
+
+  if(mode === "random"){
+
+    temp.sort(() => Math.random()-0.5);
+
+  }
+
+  if(mode === "weak"){
+
+    temp.sort((a,b)=>
+      getCorrectRate(a.id)
+      -
+      getCorrectRate(b.id)
+    );
+
+  }
+
+  quizQuestions = temp.slice(0,questionCount);
+
+  document.getElementById(
+    "topPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "finishPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "quizPage"
+  ).classList.remove("hidden");
+
+  showQuestion();
+
+}
+
+function showQuestion(){
+
+  const q = quizQuestions[currentQuestion];
+
+  document.getElementById(
+    "progress"
+  ).innerText =
+  (currentQuestion+1)
+  + "/"
+  + questionCount;
+
+  document.getElementById(
+    "question"
+  ).innerText =
+  q.question;
+
+  showHistory(q.id);
 
   const choicesDiv =
-    document.getElementById("choices");
+  document.getElementById("choices");
 
   choicesDiv.innerHTML = "";
 
-  q.choices.forEach(choice => {
+  let choices = [...q.choices];
+
+  choices.sort(()=>Math.random()-0.5);
+
+  choices.forEach(choice=>{
 
     const button =
-      document.createElement("button");
+    document.createElement("button");
 
     button.innerText = choice;
 
-    button.onclick = () => checkAnswer(choice);
+    button.onclick =
+    ()=>checkAnswer(choice);
 
     choicesDiv.appendChild(button);
 
@@ -40,53 +106,161 @@ function showQuestion() {
 
 }
 
-function checkAnswer(choice) {
+function checkAnswer(choice){
 
-  const q = questions[currentQuestion];
+  const q = quizQuestions[currentQuestion];
 
-  const result =
-    document.getElementById("result");
+  let correct = false;
 
-  if (choice === q.answer) {
+  if(choice === q.answer){
 
-    result.innerText = "⭕ 正解！";
+    correct = true;
 
     correctCount++;
 
-  } else {
+    document.getElementById(
+      "result"
+    ).innerText =
+    "⭕ 正解！";
 
-    result.innerText =
-      "❌ 不正解！ 正解は " + q.answer;
+  }else{
+
+    document.getElementById(
+      "result"
+    ).innerText =
+    "❌ 正解：" + q.answer;
 
   }
+
+  saveHistory(q.id,correct);
 
   currentQuestion++;
 
-  updateScore();
+  setTimeout(()=>{
 
-  if (currentQuestion < questions.length) {
+    document.getElementById(
+      "result"
+    ).innerText = "";
 
-    setTimeout(showQuestion, 1000);
+    if(currentQuestion
+      < quizQuestions.length){
 
-  } else {
+      showQuestion();
 
-    document.getElementById("question")
-      .innerText = "終了！";
+    }else{
 
-    document.getElementById("choices")
-      .innerHTML = "";
+      finishQuiz();
 
-  }
+    }
+
+  },1000);
 
 }
 
-function updateScore() {
+function finishQuiz(){
 
-  document.getElementById("score")
-    .innerText =
-    currentQuestion +
-    "問中" +
-    correctCount +
-    "問正解";
+  document.getElementById(
+    "quizPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "finishPage"
+  ).classList.remove("hidden");
+
+  const rate =
+  Math.round(
+    correctCount
+    /
+    questionCount
+    *100
+  );
+
+  document.getElementById(
+    "finalScore"
+  ).innerText =
+  correctCount
+  + " / "
+  + questionCount
+  + " 正解\n正答率 "
+  + rate
+  + "%";
+
+}
+
+function goTop(){
+
+  document.getElementById(
+    "quizPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "finishPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "topPage"
+  ).classList.remove("hidden");
+
+}
+
+function saveHistory(id,result){
+
+  let history =
+  JSON.parse(
+    localStorage.getItem(id)
+  ) || [];
+
+  history.push(result);
+
+  if(history.length > 3){
+
+    history.shift();
+
+  }
+
+  localStorage.setItem(
+    id,
+    JSON.stringify(history)
+  );
+
+}
+
+function showHistory(id){
+
+  let history =
+  JSON.parse(
+    localStorage.getItem(id)
+  ) || [];
+
+  let text = "";
+
+  history.forEach(h=>{
+
+    text += h ? "⭕ " : "❌ ";
+
+  });
+
+  document.getElementById(
+    "history"
+  ).innerText =
+  "過去3回：" + text;
+
+}
+
+function getCorrectRate(id){
+
+  let history =
+  JSON.parse(
+    localStorage.getItem(id)
+  ) || [];
+
+  if(history.length === 0){
+    return 0;
+  }
+
+  let correct =
+  history.filter(x=>x).length;
+
+  return correct / history.length;
 
 }
