@@ -24,6 +24,22 @@ function setMode(mode){
 
   selectedMode = mode;
 
+  document.getElementById(
+    "mode-normal"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "mode-random"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "mode-weak"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "mode-" + mode
+  ).classList.add("selected");
+
   updateSettings();
 
 }
@@ -31,6 +47,22 @@ function setMode(mode){
 function setCount(count){
 
   selectedCount = count;
+
+  document.getElementById(
+    "count-5"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "count-10"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "count-20"
+  ).classList.remove("selected");
+
+  document.getElementById(
+    "count-" + count
+  ).classList.add("selected");
 
   updateSettings();
 
@@ -351,3 +383,7 @@ function getRate(id){
   history.length;
 
 }
+
+setMode("normal");
+
+setCount(5);

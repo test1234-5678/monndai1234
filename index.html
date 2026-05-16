@@ -19,7 +19,7 @@ href="style.css">
 
 <div class="container">
 
-<!-- トップ -->
+<!-- トップ画面 -->
 
 <div id="topPage">
 
@@ -27,15 +27,18 @@ href="style.css">
 
 <h2>出題モード</h2>
 
-<button onclick="setMode('normal')">
+<button id="mode-normal"
+onclick="setMode('normal')">
 順番に出題
 </button>
 
-<button onclick="setMode('random')">
+<button id="mode-random"
+onclick="setMode('random')">
 ランダム出題
 </button>
 
-<button onclick="setMode('weak')">
+<button id="mode-weak"
+onclick="setMode('weak')">
 苦手問題
 </button>
 
@@ -43,15 +46,18 @@ href="style.css">
 
 <div class="countArea">
 
-<button onclick="setCount(5)">
+<button id="count-5"
+onclick="setCount(5)">
 5問
 </button>
 
-<button onclick="setCount(10)">
+<button id="count-10"
+onclick="setCount(10)">
 10問
 </button>
 
-<button onclick="setCount(20)">
+<button id="count-20"
+onclick="setCount(20)">
 20問
 </button>
 
@@ -67,7 +73,7 @@ href="style.css">
 
 </div>
 
-<!-- 問題 -->
+<!-- 問題画面 -->
 
 <div id="quizPage"
 class="hidden">
@@ -89,7 +95,7 @@ class="hidden">
 </button>
 
 <button onclick="goHome()">
-🏠
+ホーム
 </button>
 
 <button onclick="nextQuestion()">
@@ -100,7 +106,7 @@ class="hidden">
 
 </div>
 
-<!-- 結果 -->
+<!-- 結果画面 -->
 
 <div id="finishPage"
 class="hidden">
