@@ -5,7 +5,7 @@ let correctCount = 0;
 let answered = false;
 
 // ======================
-// コンボ管理
+// コンボ・スコア
 // ======================
 let comboCount = 0;
 
@@ -14,7 +14,7 @@ const TODAY_BEST_KEY = "quiz_today_best";
 const TODAY_DATE_KEY = "quiz_today_date";
 
 // ======================
-// 初期化
+// 初期読み込み
 // ======================
 fetch("questions.json")
 .then(r=>r.json())
@@ -92,6 +92,8 @@ function startQuiz(){
 
   showPage("quizPage");
   showQuestion();
+
+  loadScores();
 }
 
 // ======================
@@ -136,6 +138,7 @@ function showQuestion(){
   });
 
   saveProgress();
+  loadScores();
 }
 
 // ======================
@@ -169,7 +172,7 @@ function checkAnswer(choice){
     comboCount = 0;
 
     resultEl.innerText =
-    "❌ 不正解！！\n正解は " + q.answer + "\nコンボリセット";
+    "❌ 不正解！！\n正解は " + q.answer;
 
     quizPage.classList.add("wrong-shake");
 
@@ -183,12 +186,12 @@ function checkAnswer(choice){
   updateProgressRate();
   saveProgress();
 
+  loadScores();
+
   setTimeout(()=>{
 
     quizPage.classList.remove("correct-flash");
     quizPage.classList.remove("wrong-shake");
-
-loadScores();
 
   },600);
 }
@@ -241,14 +244,12 @@ function updateHighScore(combo){
 }
 
 // ======================
-// 表示読み込み
+// スコア表示
 // ======================
 function loadScores(){
 
   let high = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || 0);
   let today = parseInt(localStorage.getItem(TODAY_BEST_KEY) || 0);
-
-  let title = getTitle(high);
 
   document.getElementById("row1").innerText =
   "現在の連続正答数：" + comboCount +
@@ -256,7 +257,8 @@ function loadScores(){
 
   document.getElementById("row2").innerText =
   "ハイスコア：" + high +
-  "    称号：" + title;
+  "    称号：" + getTitle(high);
+
 }
 
 // ======================
@@ -285,17 +287,19 @@ function prevQuestion(){
 }
 
 // ======================
-// ホーム（ここだけリセット）
+// ホーム
 // ======================
 function goHome(){
 
   quizQuestions = [];
   currentQuestion = 0;
   correctCount = 0;
+  answered = false;
 
-  comboCount = 0; // ★ここでだけリセット
+  comboCount = 0;
 
   showPage("topPage");
+  loadScores();
 }
 
 // ======================
@@ -312,6 +316,7 @@ function finishQuiz(){
   correctCount + " / " + quizQuestions.length +
   " 正解\n正答率 " + rate + "%";
 
+  loadScores();
 }
 
 // ======================
