@@ -1,63 +1,57 @@
 let questions = [];
+
 let quizQuestions = [];
 
 let currentQuestion = 0;
+
 let correctCount = 0;
-let questionCount = 5;
+
+let mode = "normal";
 
 fetch("questions.json")
 .then(r=>r.json())
 .then(data=>{
+
   questions = data;
+
 });
 
-function setQuestionCount(count){
+function selectMode(selected){
 
-  questionCount = count;
+  mode = selected;
 
-  document.getElementById(
-    "selectedCount"
-  ).innerText =
-  "現在：" + count + "問";
+  showPage("page2");
 
 }
 
-function startQuiz(mode){
+function startQuiz(count){
 
   currentQuestion = 0;
+
   correctCount = 0;
 
   let temp = [...questions];
 
   if(mode === "random"){
 
-    temp.sort(() => Math.random()-0.5);
+    temp.sort(()=>Math.random()-0.5);
 
   }
 
   if(mode === "weak"){
 
     temp.sort((a,b)=>
-      getCorrectRate(a.id)
+      getRate(a.id)
       -
-      getCorrectRate(b.id)
+      getRate(b.id)
     );
 
   }
 
-  quizQuestions = temp.slice(0,questionCount);
+  quizQuestions =
+  temp.slice(0,count);
 
-  document.getElementById(
-    "topPage"
-  ).classList.add("hidden");
-
-  document.getElementById(
-    "finishPage"
-  ).classList.add("hidden");
-
-  document.getElementById(
-    "quizPage"
-  ).classList.remove("hidden");
+  showPage("page3");
 
   showQuestion();
 
@@ -65,14 +59,15 @@ function startQuiz(mode){
 
 function showQuestion(){
 
-  const q = quizQuestions[currentQuestion];
+  const q =
+  quizQuestions[currentQuestion];
 
   document.getElementById(
     "progress"
   ).innerText =
   (currentQuestion+1)
-  + "/"
-  + questionCount;
+  + " / "
+  + quizQuestions.length;
 
   document.getElementById(
     "question"
@@ -82,25 +77,35 @@ function showQuestion(){
   showHistory(q.id);
 
   const choicesDiv =
-  document.getElementById("choices");
+  document.getElementById(
+    "choices"
+  );
 
   choicesDiv.innerHTML = "";
 
-  let choices = [...q.choices];
+  let choices =
+  [...q.choices];
 
-  choices.sort(()=>Math.random()-0.5);
+  choices.sort(
+    ()=>Math.random()-0.5
+  );
 
   choices.forEach(choice=>{
 
     const button =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
-    button.innerText = choice;
+    button.innerText =
+    choice;
 
     button.onclick =
     ()=>checkAnswer(choice);
 
-    choicesDiv.appendChild(button);
+    choicesDiv.appendChild(
+      button
+    );
 
   });
 
@@ -108,7 +113,8 @@ function showQuestion(){
 
 function checkAnswer(choice){
 
-  const q = quizQuestions[currentQuestion];
+  const q =
+  quizQuestions[currentQuestion];
 
   let correct = false;
 
@@ -121,7 +127,7 @@ function checkAnswer(choice){
     document.getElementById(
       "result"
     ).innerText =
-    "⭕ 正解！";
+    "⭕ 正解";
 
   }else{
 
@@ -132,7 +138,10 @@ function checkAnswer(choice){
 
   }
 
-  saveHistory(q.id,correct);
+  saveHistory(
+    q.id,
+    correct
+  );
 
   currentQuestion++;
 
@@ -159,38 +168,47 @@ function checkAnswer(choice){
 
 function finishQuiz(){
 
-  document.getElementById(
-    "quizPage"
-  ).classList.add("hidden");
-
-  document.getElementById(
-    "finishPage"
-  ).classList.remove("hidden");
+  showPage("finishPage");
 
   const rate =
   Math.round(
     correctCount
     /
-    questionCount
+    quizQuestions.length
     *100
   );
 
   document.getElementById(
-    "finalScore"
+    "finalResult"
   ).innerText =
   correctCount
   + " / "
-  + questionCount
-  + " 正解\n正答率 "
+  + quizQuestions.length
+  + " 正解\n"
+  + "正答率 "
   + rate
   + "%";
 
 }
 
-function goTop(){
+function goHome(){
+
+  showPage("page1");
+
+}
+
+function showPage(id){
 
   document.getElementById(
-    "quizPage"
+    "page1"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "page2"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "page3"
   ).classList.add("hidden");
 
   document.getElementById(
@@ -198,7 +216,7 @@ function goTop(){
   ).classList.add("hidden");
 
   document.getElementById(
-    "topPage"
+    id
   ).classList.remove("hidden");
 
 }
@@ -243,11 +261,12 @@ function showHistory(id){
   document.getElementById(
     "history"
   ).innerText =
-  "過去3回：" + text;
+  "過去3回 "
+  + text;
 
 }
 
-function getCorrectRate(id){
+function getRate(id){
 
   let history =
   JSON.parse(
@@ -255,12 +274,16 @@ function getCorrectRate(id){
   ) || [];
 
   if(history.length === 0){
+
     return 0;
+
   }
 
   let correct =
   history.filter(x=>x).length;
 
-  return correct / history.length;
+  return correct
+  /
+  history.length;
 
 }
