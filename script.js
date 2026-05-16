@@ -219,14 +219,14 @@ function checkAnswer(choice){
     document.getElementById(
       "result"
     ).innerText =
-    "⭕ 正解";
+    "◯ 正解";
 
   }else{
 
     document.getElementById(
       "result"
     ).innerText =
-    "❌ 正解：" + q.answer;
+    "× 正解：" + q.answer;
 
   }
 
@@ -320,6 +320,10 @@ function showPage(id){
   ).classList.add("hidden");
 
   document.getElementById(
+    "listPage"
+  ).classList.add("hidden");
+
+  document.getElementById(
     id
   ).classList.remove("hidden");
 
@@ -358,7 +362,7 @@ function showHistory(id){
 
   history.forEach(h=>{
 
-    text += h ? "⭕ " : "❌ ";
+    text += h ? "◯ " : "× ";
 
   });
 
@@ -412,7 +416,7 @@ function createQuestionList(){
 
     history.forEach(h=>{
 
-      text += h ? "⭕ " : "❌ ";
+      text += h ? "◯ " : "× ";
 
     });
 
@@ -470,6 +474,11 @@ function updateProgressRate(){
   document.getElementById(
     "progressRate"
   ).innerText =
+  rate + "%";
+
+  document.getElementById(
+    "progressFill"
+  ).style.width =
   rate + "%";
 
 }

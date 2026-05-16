@@ -29,10 +29,11 @@ h1,h2,h3,p{
 button{
 
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   padding:18px;
-  font-size:20px;
+  font-size:22px;
   margin-top:10px;
+  font-weight:bold;
 
 }
 
@@ -59,13 +60,17 @@ button{
 
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:14px;
+  margin-top:20px;
 
 }
 
 #choices button{
 
   width:100%;
+  background:white;
+  min-height:90px;
+  font-size:26px;
 
 }
 
@@ -73,27 +78,29 @@ button{
 
   display:flex;
   gap:10px;
-  margin-top:20px;
+  margin-top:25px;
 
 }
 
 .bottomButtons button{
 
   flex:1;
+  background:#dddddd;
 
 }
 
 #result{
 
-  font-size:28px;
+  font-size:32px;
   margin-top:20px;
   text-align:center;
+  font-weight:bold;
 
 }
 
 #history{
 
-  font-size:22px;
+  font-size:24px;
   text-align:center;
 
 }
@@ -116,16 +123,35 @@ button{
 .questionItem{
 
   background:white;
-  border-radius:10px;
-  padding:10px;
+  border-radius:12px;
+  padding:12px;
   margin-top:10px;
-  font-size:18px;
+  font-size:20px;
 
 }
 
 #progressRate{
 
-  font-size:32px;
+  font-size:34px;
   font-weight:bold;
+
+}
+
+.progressBar{
+
+  width:100%;
+  height:30px;
+  background:#dddddd;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+
+}
+
+#progressFill{
+
+  height:100%;
+  width:0%;
+  background:#2d6cdf;
 
 }

@@ -31,6 +31,14 @@ href="style.css">
 0%
 </p>
 
+<div class="progressBar">
+
+<div id="progressFill">
+
+</div>
+
+</div>
+
 <h2>出題モード</h2>
 
 <button id="mode-normal"
@@ -77,11 +85,9 @@ onclick="setCount(20)">
 開始
 </button>
 
-<h2>問題一覧</h2>
-
-<div id="questionList">
-
-</div>
+<button onclick="showPage('listPage')">
+問題一覧
+</button>
 
 </div>
 
@@ -117,6 +123,23 @@ class="hidden">
 </button>
 
 </div>
+
+</div>
+
+<!-- 問題一覧画面 -->
+
+<div id="listPage"
+class="hidden">
+
+<h2>問題一覧</h2>
+
+<div id="questionList">
+
+</div>
+
+<button onclick="goHome()">
+ホームへ戻る
+</button>
 
 </div>
 
