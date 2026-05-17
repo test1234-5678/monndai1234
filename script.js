@@ -319,6 +319,20 @@ function checkAnswerSafe(choice){
     "⭕️ 正解！！\nコンボ：" +
     comboCount;
 
+    // 正解フラッシュ
+    const choices =
+    document.getElementById("choices");
+
+    choices.classList.remove(
+      "correct-flash"
+    );
+
+    void choices.offsetWidth;
+
+    choices.classList.add(
+      "correct-flash"
+    );
+
   }
 
   //////////////////////
@@ -332,6 +346,20 @@ function checkAnswerSafe(choice){
     result.innerText =
     "❌ 不正解！！\n正解：" +
     q.answer;
+
+    // 不正解シェイク
+    const choices =
+    document.getElementById("choices");
+
+    choices.classList.remove(
+      "wrong-shake"
+    );
+
+    void choices.offsetWidth;
+
+    choices.classList.add(
+      "wrong-shake"
+    );
   }
 
   //////////////////////
@@ -536,10 +564,6 @@ function getRateSafe(id){
 
 function updateScoresSafe(combo){
 
-  //////////////////////
-  // ハイスコア
-  //////////////////////
-
   let high =
   parseInt(
     localStorage.getItem(
@@ -554,10 +578,6 @@ function updateScoresSafe(combo){
       combo
     );
   }
-
-  //////////////////////
-  // 今日最高
-  //////////////////////
 
   let today =
   parseInt(
