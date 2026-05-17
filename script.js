@@ -8,8 +8,7 @@ let currentQuestion = 0;
 let correctCount = 0;
 let answered = false;
 
-let comboCount =
-parseInt(localStorage.getItem("comboCount") || 0);
+let comboCount = parseInt(localStorage.getItem("comboCount") || 0);
 
 let selectedMode = "normal";
 let selectedCount = 5;
