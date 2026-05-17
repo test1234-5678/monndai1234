@@ -122,15 +122,34 @@ function startQuiz(){
   // 順番
   //////////////////////
 
-  if(selectedMode === "normal"){
+//////////////////////
+// 順番
+//////////////////////
 
-    let saved =
-    localStorage.getItem(
-      "quiz_progress_index"
-    );
+if(selectedMode === "normal"){
 
-    let startIndex =
-    saved ? parseInt(saved) : 0;
+  let saved =
+  localStorage.getItem(
+    "quiz_progress_index"
+  );
+
+  let startIndex =
+  saved ? parseInt(saved) : 0;
+
+  // 最後まで行ったら最初へ
+  if(startIndex >= questions.length){
+    startIndex = 0;
+  }
+
+  // 後半 + 前半 を結合
+  temp = [
+
+    ...questions.slice(startIndex),
+
+    ...questions.slice(0, startIndex)
+
+  ];
+}
 
     // 最後まで行ったら1問目へ戻す
     if(startIndex >= questions.length){
