@@ -284,6 +284,16 @@ function showQuestionSafe(){
   document.getElementById(
     "result"
   ).innerText = "";
+
+  //////////////////////
+  // アニメーションリセット
+  //////////////////////
+
+  document.getElementById("choices")
+  .classList.remove("correct-flash");
+
+  document.getElementById("choices")
+  .classList.remove("wrong-shake");
 }
 
 //////////////////////////////
