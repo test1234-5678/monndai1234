@@ -8,7 +8,8 @@ let currentQuestion = 0;
 let correctCount = 0;
 let answered = false;
 
-let comboCount = parseInt(localStorage.getItem("comboCount") || 0);
+let comboCount =
+parseInt(localStorage.getItem("comboCount") || 0);
 
 let selectedMode = "normal";
 let selectedCount = 5;
@@ -35,7 +36,6 @@ fetch("questions.json")
 
   console.error(err);
 
-  alert("questions.json 読み込み失敗");
 });
 
 //////////////////////////////
@@ -48,15 +48,20 @@ function setMode(mode){
 
   ["normal","random","weak"].forEach(m=>{
 
-    document
-    .getElementById("mode-" + m)
-    .classList.remove("selected");
+    const el =
+    document.getElementById(
+      "mode-" + m
+    );
+
+    if(el){
+      el.classList.remove("selected");
+    }
 
   });
 
-  document
-  .getElementById("mode-" + mode)
-  .classList.add("selected");
+  document.getElementById(
+    "mode-" + mode
+  ).classList.add("selected");
 
   updateSettingsSafe();
 }
@@ -71,15 +76,20 @@ function setCount(count){
 
   [5,10,20].forEach(n=>{
 
-    document
-    .getElementById("count-" + n)
-    .classList.remove("selected");
+    const el =
+    document.getElementById(
+      "count-" + n
+    );
+
+    if(el){
+      el.classList.remove("selected");
+    }
 
   });
 
-  document
-  .getElementById("count-" + count)
-  .classList.add("selected");
+  document.getElementById(
+    "count-" + count
+  ).classList.add("selected");
 
   updateSettingsSafe();
 }
@@ -103,11 +113,12 @@ function updateSettingsSafe(){
   document.getElementById(
     "settingsText"
   ).innerText =
-  modeText + " / " + selectedCount + "問";
+  modeText + " / " +
+  selectedCount + "問";
 }
 
 //////////////////////////////
-// クイズ開始
+// 開始
 //////////////////////////////
 
 function startQuiz(){
@@ -119,47 +130,21 @@ function startQuiz(){
   let temp = [...questions];
 
   //////////////////////
-  // 順番
+  // 順番モード
   //////////////////////
 
-//////////////////////
-// 順番
-//////////////////////
+  if(selectedMode === "normal"){
 
-if(selectedMode === "normal"){
+    let saved =
+    localStorage.getItem(
+      "quiz_progress_index"
+    );
 
-  let saved =
-  localStorage.getItem(
-    "quiz_progress_index"
-  );
+    let startIndex =
+    saved ? parseInt(saved) : 0;
 
-  let startIndex =
-  saved ? parseInt(saved) : 0;
-
-  // 最後まで行ったら最初へ
-  if(startIndex >= questions.length){
-    startIndex = 0;
-  }
-
-  // 後半 + 前半 を結合
-  temp = [
-
-    ...questions.slice(startIndex),
-
-    ...questions.slice(0, startIndex)
-
-  ];
-}
-
-    // 最後まで行ったら1問目へ戻す
     if(startIndex >= questions.length){
-
       startIndex = 0;
-
-      localStorage.setItem(
-        "quiz_progress_index",
-        0
-      );
     }
 
     temp = [
@@ -195,7 +180,7 @@ if(selectedMode === "normal"){
   }
 
   //////////////////////
-  // 問題数制限
+  // 問題数
   //////////////////////
 
   quizQuestions =
@@ -223,12 +208,35 @@ function showQuestionSafe(){
   const q =
   quizQuestions[currentQuestion];
 
+  if(!q){
+    return;
+  }
+
+  //////////////////////
+  // 順番保存
+  //////////////////////
+
+  if(selectedMode === "normal"){
+
+    let nextIndex =
+    (q.number) % questions.length;
+
+    localStorage.setItem(
+      "quiz_progress_index",
+      nextIndex
+    );
+  }
+
+  //////////////////////
+  // 表示
+  //////////////////////
+
   document.getElementById(
     "progress"
   ).innerText =
-  (currentQuestion + 1)
-  + " / "
-  + quizQuestions.length;
+  (currentQuestion + 1) +
+  " / " +
+  quizQuestions.length;
 
   document.getElementById(
     "questionNumber"
@@ -239,6 +247,14 @@ function showQuestionSafe(){
     "question"
   ).innerText =
   q.question;
+
+  document.getElementById(
+    "result"
+  ).innerText = "";
+
+  //////////////////////
+  // 選択肢
+  //////////////////////
 
   const choicesDiv =
   document.getElementById(
@@ -279,7 +295,9 @@ function showQuestionSafe(){
 
 function checkAnswerSafe(choice){
 
-  if(answered) return;
+  if(answered){
+    return;
+  }
 
   answered = true;
 
@@ -293,7 +311,7 @@ function checkAnswerSafe(choice){
 
   const questionArea =
   document.getElementById(
-    "question"
+    "quizPage"
   );
 
   //////////////////////
@@ -310,34 +328,66 @@ function checkAnswerSafe(choice){
       comboCount
     );
 
-    updateHighScores();
+    updateScoresSafe(comboCount);
 
     result.innerText =
-    "⭕️ 正解！！\nコンボ：" +
-    comboCount;
+    "⭕️ 正解！！\n" +
+    comboCount +
+    "コンボ！";
+
+    result.style.fontSize =
+    "24px";
+
+    questionArea.classList.remove(
+      "correct-flash"
+    );
+
+    void questionArea.offsetWidth;
 
     questionArea.classList.add(
       "correct-flash"
     );
 
-    if(comboCount >= 2){
+    //////////////////////
+    // コンボ演出
+    //////////////////////
+
+    if(comboCount >= 100){
+
+      questionArea.classList.add(
+        "combo-100"
+      );
+
+      setTimeout(()=>{
+        questionArea.classList.remove(
+          "combo-100"
+        );
+      },1000);
+
+    }else if(comboCount >= 20){
+
+      questionArea.classList.add(
+        "combo-20"
+      );
+
+      setTimeout(()=>{
+        questionArea.classList.remove(
+          "combo-20"
+        );
+      },800);
+
+    }else if(comboCount >= 5){
 
       questionArea.classList.add(
         "combo-5"
       );
+
+      setTimeout(()=>{
+        questionArea.classList.remove(
+          "combo-5"
+        );
+      },600);
     }
-
-    setTimeout(()=>{
-
-      questionArea.classList.remove(
-        "correct-flash"
-      );
-
-      questionArea.classList.remove(
-        "combo-5"
-      );
-
-    },500);
 
   }
 
@@ -355,38 +405,20 @@ function checkAnswerSafe(choice){
     );
 
     result.innerText =
-    "❌ 不正解！！\n正解：" +
-    q.answer;
+    "❌ 不正解！！\n" +
+    "正解：" + q.answer;
 
-    questionArea.classList.add(
+    result.style.fontSize =
+    "20px";
+
+    questionArea.classList.remove(
       "wrong-shake"
     );
 
-    setTimeout(()=>{
+    void questionArea.offsetWidth;
 
-      questionArea.classList.remove(
-        "wrong-shake"
-      );
-
-    },500);
-  }
-
-  //////////////////////
-  // 順番保存
-  //////////////////////
-
-  if(selectedMode === "normal"){
-
-    let nextIndex =
-    quizQuestions[currentQuestion].number;
-
-    if(nextIndex >= questions.length){
-      nextIndex = 0;
-    }
-
-    localStorage.setItem(
-      "quiz_progress_index",
-      nextIndex
+    questionArea.classList.add(
+      "wrong-shake"
     );
   }
 
@@ -395,8 +427,8 @@ function checkAnswerSafe(choice){
     choice === q.answer
   );
 
+  createQuestionListSafe();
   updateProgressRateSafe();
-
   loadScoresSafe();
 }
 
@@ -406,8 +438,8 @@ function checkAnswerSafe(choice){
 
 function nextQuestion(){
 
-  if(currentQuestion
-  >= quizQuestions.length - 1){
+  if(currentQuestion >=
+     quizQuestions.length - 1){
 
     finishQuizSafe();
     return;
@@ -454,19 +486,20 @@ function finishQuizSafe(){
 
   const rate =
   Math.round(
-    correctCount
-    / quizQuestions.length
+    correctCount /
+    quizQuestions.length
     * 100
   );
 
   document.getElementById(
     "finalResult"
   ).innerText =
-  correctCount
-  + " / "
-  + quizQuestions.length
-  + " 正解\n正答率 "
-  + rate + "%";
+
+  correctCount +
+  " / " +
+  quizQuestions.length +
+  " 正解\n正答率 " +
+  rate + "%";
 }
 
 //////////////////////////////
@@ -475,22 +508,25 @@ function finishQuizSafe(){
 
 function showPage(id){
 
-  [
-    "topPage",
-    "quizPage",
-    "finishPage",
-    "listPage"
-  ].forEach(page=>{
+  ["topPage",
+   "quizPage",
+   "finishPage",
+   "listPage"
+  ].forEach(p=>{
 
-    document
-    .getElementById(page)
-    .classList.add("hidden");
+    document.getElementById(
+      p
+    ).classList.add(
+      "hidden"
+    );
 
   });
 
-  document
-  .getElementById(id)
-  .classList.remove("hidden");
+  document.getElementById(
+    id
+  ).classList.remove(
+    "hidden"
+  );
 }
 
 //////////////////////////////
@@ -515,8 +551,6 @@ function saveHistorySafe(id,result){
     id,
     JSON.stringify(history)
   );
-
-  createQuestionListSafe();
 }
 
 //////////////////////////////
@@ -542,12 +576,11 @@ function showHistorySafe(id){
   document.getElementById(
     "history"
   ).innerText =
-  "過去3回 "
-  + text;
+  "過去3回：" + text;
 }
 
 //////////////////////////////
-// 苦手判定
+// 苦手率
 //////////////////////////////
 
 function getRateSafe(id){
@@ -562,10 +595,11 @@ function getRateSafe(id){
     return 0;
   }
 
-  let ok =
+  let correct =
   history.filter(x=>x).length;
 
-  return ok / history.length;
+  return correct /
+  history.length;
 }
 
 //////////////////////////////
@@ -608,23 +642,24 @@ function createQuestionListSafe(){
     button.innerHTML =
 
     `<div class="questionRow">
-
       <div>
-      問題 ${q.number}
+        問題 ${q.number}
       </div>
-
       <div class="questionHistory">
-      ${text}
+        ${text}
       </div>
-
     </div>`;
 
     button.onclick = ()=>{
 
-      const index =
+      let index =
       questions.findIndex(
         x => x.id === q.id
       );
+
+      if(index < 0){
+        index = 0;
+      }
 
       quizQuestions =
       questions.slice(index);
@@ -642,7 +677,7 @@ function createQuestionListSafe(){
 }
 
 //////////////////////////////
-// 進捗率
+// 進捗
 //////////////////////////////
 
 function updateProgressRateSafe(){
@@ -669,15 +704,16 @@ function updateProgressRateSafe(){
 
   const rate =
   Math.round(
-    complete
-    / questions.length
+    complete /
+    questions.length
     * 100
   );
 
   document.getElementById(
     "progressRate"
   ).innerText =
-  "進捗率：" + rate + "%";
+  "進捗率：" +
+  rate + "%";
 
   document.getElementById(
     "progressFill"
@@ -686,10 +722,10 @@ function updateProgressRateSafe(){
 }
 
 //////////////////////////////
-// ハイスコア
+// スコア
 //////////////////////////////
 
-function updateHighScores(){
+function updateScoresSafe(combo){
 
   let high =
   parseInt(
@@ -698,11 +734,11 @@ function updateHighScores(){
     ) || 0
   );
 
-  if(comboCount > high){
+  if(combo > high){
 
     localStorage.setItem(
       HIGH_SCORE_KEY,
-      comboCount
+      combo
     );
   }
 
@@ -713,11 +749,11 @@ function updateHighScores(){
     ) || 0
   );
 
-  if(comboCount > today){
+  if(combo > today){
 
     localStorage.setItem(
       TODAY_BEST_KEY,
-      comboCount
+      combo
     );
   }
 }
@@ -738,6 +774,10 @@ function loadScoresSafe(){
     "row2"
   );
 
+  if(!row1 || !row2){
+    return;
+  }
+
   let high =
   parseInt(
     localStorage.getItem(
@@ -752,19 +792,36 @@ function loadScoresSafe(){
     ) || 0
   );
 
+  let title = "初心者";
+
+  if(high >= 100){
+    title = "伝説";
+  }
+  else if(high >= 50){
+    title = "神";
+  }
+  else if(high >= 20){
+    title = "達人";
+  }
+  else if(high >= 10){
+    title = "上級者";
+  }
+
   row1.innerText =
-  "連続正答：" +
+  "現在：" +
   comboCount +
   " / 今日最高：" +
   today;
 
   row2.innerText =
   "ハイスコア：" +
-  high;
+  high +
+  " / 称号：" +
+  title;
 }
 
 //////////////////////////////
-// 初期設定
+// 初期化
 //////////////////////////////
 
 setMode("normal");
