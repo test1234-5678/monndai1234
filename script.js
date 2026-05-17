@@ -130,7 +130,20 @@ function startQuiz(){
     let startIndex =
     saved ? parseInt(saved) : 0;
 
-    temp = temp.slice(startIndex);
+    // 最後まで行ったら1問目へ戻す
+    if(startIndex >= questions.length){
+      startIndex = 0;
+
+      localStorage.setItem(
+        "quiz_progress_index",
+        0
+      );
+    }
+
+    temp = [
+      ...questions.slice(startIndex),
+      ...questions.slice(0, startIndex)
+    ];
   }
 
   //////////////////////
@@ -157,6 +170,26 @@ function startQuiz(){
     });
 
   }
+
+  //////////////////////
+  // 問題セット
+  //////////////////////
+
+  quizQuestions = [...temp];
+
+  quizQuestions =
+  quizQuestions.slice(0, selectedCount);
+
+  if(quizQuestions.length === 0){
+
+    alert("問題がありません");
+    return;
+  }
+
+  showPage("quizPage");
+
+  showQuestionSafe();
+}
 
   //////////////////////
   // 問題セット
