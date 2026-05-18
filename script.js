@@ -36,6 +36,32 @@ let selectedCount = 5;
 
 const HIGH_SCORE_KEY = "quiz_high_score";
 const TODAY_BEST_KEY = "quiz_today_best";
+const TODAY_DATE_KEY = "quiz_today_date";
+
+//////////////////////////////
+// 日付チェック
+//////////////////////////////
+
+const today =
+new Date().toLocaleDateString();
+
+const savedDate =
+localStorage.getItem(
+  TODAY_DATE_KEY
+);
+
+if(savedDate !== today){
+
+  localStorage.setItem(
+    TODAY_DATE_KEY,
+    today
+  );
+
+  localStorage.setItem(
+    TODAY_BEST_KEY,
+    0
+  );
+}
 
 //////////////////////////////
 // 初期読み込み
