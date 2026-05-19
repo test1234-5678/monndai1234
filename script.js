@@ -76,6 +76,7 @@ fetch("questions.json")
   createQuestionListSafe();
   updateProgressRateSafe();
   loadScoresSafe();
+  updateExamCountdown();
 
 })
 .catch(err => {
@@ -542,6 +543,7 @@ function goHome(){
   showPage("topPage");
 
   loadScoresSafe();
+  updateExamCountdown();
 }
 
 //////////////////////////////
@@ -911,8 +913,74 @@ function loadScoresSafe(){
 }
 
 //////////////////////////////
+// 試験カウントダウン
+//////////////////////////////
+
+function updateExamCountdown(){
+
+  const el =
+  document.getElementById(
+    "examMiniCountdown"
+  );
+
+  if(!el){
+    return;
+  }
+
+  const today =
+  new Date();
+
+  const examA =
+  new Date("2026-08-22");
+
+  const examB =
+  new Date("2026-09-30");
+
+  const diffA =
+  Math.ceil(
+    (examA - today)
+    / (1000 * 60 * 60 * 24)
+  );
+
+  const diffB =
+  Math.ceil(
+    (examB - today)
+    / (1000 * 60 * 60 * 24)
+  );
+
+  let colorA = "white";
+  let colorB = "white";
+
+  if(diffA <= 30){
+    colorA = "#ff4d4d";
+  }
+
+  if(diffB <= 30){
+    colorB = "#ff4d4d";
+  }
+
+  el.innerHTML =
+
+  `<span style="
+    font-size:14px;
+    margin-left:8px;
+    color:${colorA};
+  ">
+    A:${diffA}日
+  </span>
+
+  <span style="
+    font-size:14px;
+    margin-left:6px;
+    color:${colorB};
+  ">
+    B:${diffB}日
+  </span>`;
+}
+
+//////////////////////////////
 // 初期設定
 //////////////////////////////
 
 setMode("normal");
-setCount(5);
+setCount(5");
