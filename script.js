@@ -983,4 +983,4 @@ function updateExamCountdown(){
 //////////////////////////////
 
 setMode("normal");
-setCount(5");
+setCount(5);
