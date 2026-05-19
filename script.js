@@ -913,7 +913,7 @@ function loadScoresSafe(){
 }
 
 //////////////////////////////
-// 試験カウントダウン
+// 試験日カウントダウン
 //////////////////////////////
 
 function updateExamCountdown(){
@@ -927,14 +927,32 @@ function updateExamCountdown(){
     return;
   }
 
+  //////////////////////
+  // 今日の日付のみ取得
+  //////////////////////
+
+  const now = new Date();
+
   const today =
-  new Date();
+  new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  //////////////////////
+  // 試験日
+  //////////////////////
 
   const examA =
-  new Date("2026-08-22");
+  new Date(2026, 7, 22);
 
   const examB =
-  new Date("2026-09-30");
+  new Date(2026, 8, 30);
+
+  //////////////////////
+  // 残り日数
+  //////////////////////
 
   const diffA =
   Math.ceil(
@@ -948,6 +966,10 @@ function updateExamCountdown(){
     / (1000 * 60 * 60 * 24)
   );
 
+  //////////////////////
+  // 色
+  //////////////////////
+
   let colorA = "white";
   let colorB = "white";
 
@@ -959,22 +981,28 @@ function updateExamCountdown(){
     colorB = "#ff4d4d";
   }
 
+  //////////////////////
+  // 表示
+  //////////////////////
+
   el.innerHTML =
 
   `<span style="
-    font-size:14px;
+    font-size:15px;
     margin-left:8px;
     color:${colorA};
+    font-weight:bold;
   ">
-    A:${diffA}日
+    A:残${diffA}日
   </span>
 
   <span style="
-    font-size:14px;
-    margin-left:6px;
+    font-size:15px;
+    margin-left:8px;
     color:${colorB};
+    font-weight:bold;
   ">
-    B:${diffB}日
+    B:残${diffB}日
   </span>`;
 }
 
