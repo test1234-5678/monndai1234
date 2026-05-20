@@ -945,10 +945,10 @@ function updateExamCountdown(){
   //////////////////////
 
   const examA =
-  new Date(2026, 7, 22);
+  new Date(2026, 6, 18);
 
   const examB =
-  new Date(2026, 8, 30);
+  new Date(2026, 6, 22);
 
   //////////////////////
   // 残り日数
