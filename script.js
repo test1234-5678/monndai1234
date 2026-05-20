@@ -944,11 +944,11 @@ function updateExamCountdown(){
   // 試験日
   //////////////////////
 
-  const examA =
-  new Date(2026, 6, 18);
+const examA =
+new Date("2026-06-18");
 
-  const examB =
-  new Date(2026, 6, 22);
+const examB =
+new Date("2026-06-22");
 
   //////////////////////
   // 残り日数
